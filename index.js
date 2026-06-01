@@ -13,7 +13,7 @@ app.get('/search', async (req, res) => {
   if (!metier || !ville) return res.status(400).json({ error: 'metier et ville requis' });
 
   try {
-    const nombre = 20;
+    const nombre = 25;
     const debut = (parseInt(page) - 1) * nombre;
 
     const url = `https://recherche-entreprises.api.gouv.fr/search?q=${encodeURIComponent(metier)}&nom_commune=${encodeURIComponent(ville)}&nombre=${nombre}&debut=${debut}`;
