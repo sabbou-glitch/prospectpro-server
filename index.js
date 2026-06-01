@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-const cheerio = require('cheerio');
 
 const app = express();
 app.use(cors());
@@ -14,47 +13,37 @@ app.get('/search', async (req, res) => {
   if (!metier || !ville) return res.status(400).json({ error: 'metier et ville requis' });
 
   try {
-    const url = `https://www.pagesjaunes.fr/annuaire/chercherlespros?quoiqui=${encodeURIComponent(metier)}&ou=${encodeURIComponent(ville)}&page=${page}`;
+    const nombre = 20;
+    const debut = (parseInt(page) - 1) * nombre;
+
+    const url = `https://recherche-entreprises.api.gouv.fr/search?q=${encodeURIComponent(metier)}&nom_commune=${encodeURIComponent(ville)}&nombre=${nombre}&debut=${debut}`;
+
     const { data } = await axios.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'fr-FR,fr;q=0.9',
-      }
+      headers: { 'Accept': 'application/json' },
+      timeout: 10000
     });
 
-    const $ = cheerio.load(data);
-    const results = [];
-
-    $('.bi-container').each((i, el) => {
-      const nom = $(el).find('.bi-denomination').text().trim() || $(el).find('.denominationligne1').text().trim();
-      const adresse = $(el).find('.bi-adresse .rue-adr').text().trim();
-      const codePostal = $(el).find('.bi-adresse .cp-adr').text().trim();
-      const ville_res = $(el).find('.bi-adresse .ville-adr').text().trim();
-      const tel = $(el).find('.bi-phone .coord-numero').first().text().trim();
-      const categorie = $(el).find('.bi-activite').text().trim();
-
-      if (nom) {
-        results.push({
-          'Nom': nom,
-          'Adresse': adresse,
-          'Code Postal': codePostal,
-          'Ville': ville_res || ville,
-          'Téléphone': tel,
-          'Catégorie': categorie,
-          'Source': 'Pages Jaunes'
-        });
-      }
+    const results = (data.results || []).map(r => {
+      const siege = r.siege || {};
+      return {
+        'Nom': r.nom_raison_sociale || r.nom_complet || '',
+        'Adresse': siege.adresse || '',
+        'Code Postal': siege.code_postal || '',
+        'Ville': siege.libelle_commune || ville,
+        'Téléphone': '',
+        'Activité': r.activite_principale || '',
+        'SIRET': siege.siret || '',
+        'Source': 'INSEE SIRENE'
+      };
     });
 
-    const totalText = $('.nb-results-number').text().trim();
-    const total = parseInt(totalText.replace(/\D/g, '')) || results.length;
-    const totalPages = Math.ceil(total / 20);
+    const total = data.total_results || results.length;
+    const totalPages = Math.ceil(total / nombre);
 
     res.json({ results, total, page: parseInt(page), totalPages, metier, ville });
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ error: 'Erreur scraping', details: err.message });
+    res.status(500).json({ error: 'Erreur API INSEE', details: err.message });
   }
 });
 
