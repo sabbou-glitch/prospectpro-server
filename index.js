@@ -13,14 +13,12 @@ app.get('/search', async (req, res) => {
   if (!metier || !ville) return res.status(400).json({ error: 'metier et ville requis' });
 
   try {
-    const nombre = 25;
-    const debut = (parseInt(page) - 1) * nombre;
-
-    const url = `https://recherche-entreprises.api.gouv.fr/search?q=${encodeURIComponent(metier)}&nom_commune=${encodeURIComponent(ville)}&nombre=${nombre}&debut=${debut}`;
+    const perPage = 25;
+    const url = `https://recherche-entreprises.api.gouv.fr/search?q=${encodeURIComponent(metier + ' ' + ville)}&per_page=${perPage}&page=${page}`;
 
     const { data } = await axios.get(url, {
       headers: { 'Accept': 'application/json' },
-      timeout: 10000
+      timeout: 15000
     });
 
     const results = (data.results || []).map(r => {
@@ -30,20 +28,19 @@ app.get('/search', async (req, res) => {
         'Adresse': siege.adresse || '',
         'Code Postal': siege.code_postal || '',
         'Ville': siege.libelle_commune || ville,
-        'Téléphone': '',
         'Activité': r.activite_principale || '',
         'SIRET': siege.siret || '',
-        'Source': 'INSEE SIRENE'
+        'Source': 'INSEE'
       };
     });
 
     const total = data.total_results || results.length;
-    const totalPages = Math.ceil(total / nombre);
+    const totalPages = Math.ceil(total / perPage);
 
     res.json({ results, total, page: parseInt(page), totalPages, metier, ville });
   } catch (err) {
     console.error(err.message);
-    res.status(500).json({ error: 'Erreur API INSEE', details: err.message });
+    res.status(500).json({ error: 'Erreur', details: err.message });
   }
 });
 
