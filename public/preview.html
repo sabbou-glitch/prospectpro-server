@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Teddy — mydreamhug</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#faf7f2;color:#3a2d2f;}
+.mdh{max-width:640px;margin:0 auto;padding:24px 20px 60px;}
+.mdh-head{text-align:center;margin-bottom:24px;}
+.mdh-eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#c9a96e;font-weight:700;display:block;margin-bottom:8px;}
+.mdh-head h2{font-size:2.4rem;font-weight:800;color:#3a2d2f;line-height:1.15;margin:0;}
+.mdh-img-frame{width:100%;height:68vh;min-height:340px;max-height:620px;border-radius:28px;overflow:hidden;background:#fff;box-shadow:0 20px 70px rgba(58,45,47,.14);margin-bottom:14px;}
+#mdh-img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;transition:opacity .25s ease,transform .25s ease;}
+#mdh-img.fading{opacity:0;transform:scale(.98);}
+.mdh-badge{text-align:center;margin-bottom:28px;}
+.mdh-badge span{display:inline-flex;align-items:center;gap:7px;background:#fff;border-radius:100px;padding:8px 16px;font-size:.78rem;font-weight:600;color:#8a7070;box-shadow:0 2px 12px rgba(58,45,47,.08);}
+.mdh-dot{width:7px;height:7px;border-radius:50%;background:#5cb85c;flex-shrink:0;}
+.mdh-config{display:flex;flex-direction:column;gap:20px;}
+.mdh-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#c9a96e;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.mdh-label::after{content:'';flex:1;height:1px;background:#e8ddd9;}
+.mdh-colors{display:flex;gap:10px;flex-wrap:wrap;}
+.mdh-cbtn{padding:10px 22px;border-radius:100px;border:2px solid #e8ddd9;background:#fff;cursor:pointer;font-size:.88rem;color:#3a2d2f;font-weight:500;transition:all .18s;display:flex;align-items:center;gap:9px;}
+.mdh-cbtn.active{border-color:#c9a96e;background:#fdf9f3;color:#c9a96e;font-weight:700;}
+.mdh-sw{width:16px;height:16px;border-radius:50%;border:1.5px solid rgba(0,0,0,.1);flex-shrink:0;}
+.mdh-outfits{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.mdh-card{cursor:pointer;border-radius:14px;overflow:hidden;border:2.5px solid transparent;transition:all .2s;background:#fff;position:relative;box-shadow:0 2px 8px rgba(58,45,47,.07);}
+.mdh-card:hover{border-color:#d4a5b0;transform:translateY(-3px);}
+.mdh-card.active{border-color:#c9a96e;box-shadow:0 4px 18px rgba(201,169,110,.28);}
+.mdh-card img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;}
+.mdh-card-lbl{padding:5px 6px;font-size:.68rem;text-align:center;font-weight:600;color:#3a2d2f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mdh-card.active .mdh-card-lbl{color:#c9a96e;}
+.mdh-chk{position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:50%;background:#c9a96e;display:none;align-items:center;justify-content:center;}
+.mdh-card.active .mdh-chk{display:flex;}
+.mdh-cta{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:#fff;border-radius:20px;padding:18px 22px;box-shadow:0 2px 14px rgba(58,45,47,.07);}
+.mdh-price{font-size:2rem;font-weight:800;color:#3a2d2f;}
+.mdh-price-note{font-size:.75rem;color:#8a7070;display:block;}
+.mdh-btn{background:linear-gradient(135deg,#3a2d2f,#6b4c50);color:#fff;border:none;padding:16px 28px;border-radius:100px;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.mdh-trust{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;padding-top:4px;}
+.mdh-trust span{font-size:.74rem;color:#8a7070;}
+</style>
+</head>
+<body>
+<div class="mdh">
+  <div class="mdh-head">
+    <span class="mdh-eyebrow">mydreamhug</span>
+    <h2>Personnalise Teddy ✨</h2>
+  </div>
+  <div class="mdh-img-frame">
+    <img id="mdh-img" src="https://cdn.shopify.com/s/files/1/0970/7270/9960/files/bunny-rose.jpg?v=1781658816" alt="Teddy"/>
+  </div>
+  <div class="mdh-badge">
+    <span><span class="mdh-dot"></span>Disponible · Expédié sous 48h</span>
+  </div>
+  <div class="mdh-config">
+    <div>
+      <div class="mdh-label">Couleur de Teddy</div>
+      <div class="mdh-colors">
+        <button class="mdh-cbtn active" onclick="mdhColor('blanc',this)"><span class="mdh-sw" style="background:#f5f0eb"></span>Blanc ivoire</button>
+        <button class="mdh-cbtn" onclick="mdhColor('beige',this)"><span class="mdh-sw" style="background:#d4b896"></span>Beige doux</button>
+      </div>
+    </div>
+    <div>
+      <div class="mdh-label">Tenue de Teddy</div>
+      <div class="mdh-outfits" id="mdh-grid"></div>
+    </div>
+    <div class="mdh-cta">
+      <div>
+        <span class="mdh-price" id="mdh-price">29,99€</span>
+        <span class="mdh-price-note">livraison offerte dès 60€</span>
+      </div>
+      <button class="mdh-btn">❤️ Ajouter au panier</button>
+    </div>
+    <div class="mdh-trust">
+      <span>🇫🇷 Fait en France</span>
+      <span>🔒 Paiement sécurisé</span>
+      <span>↩️ Retour 30j</span>
+    </div>
+  </div>
+</div>
+<script>
+var O=[
+  {n:'Bunny Rose',e:'🐰',p:'29,99€',img:{blanc:'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/bunny-rose.jpg?v=1781658816',beige:'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/bunny-rose.jpg?v=1781658816'}},
+  {n:'Pyjama Hiver',e:'❄️',p:'29,99€',img:{blanc:'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/pyjama-hiver.jpg?v=1781658815',beige:'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/pyjama-hiver.jpg?v=1781658815'}},
+  {n:'Ballerine',e:'🩰',p:'29,99€',img:{blanc:'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/ballerine.jpg?v=1781658816',beige:'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/ballerine.jpg?v=1781658816'}},
+  {n:'Dinosaure',e:'🦕',p:'29,99€',img:{blanc:'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/dinosaure.jpg?v=1781658814',beige:'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/dinosaure.jpg?v=1781658814'}}
+];
+var c='blanc',i=0;
+function mdhRender(){
+  var g=document.getElementById('mdh-grid');if(!g)return;
+  g.innerHTML=O.map(function(o,idx){
+    return '<div class="mdh-card'+(idx===0?' active':'')+ '" onclick="mdhOutfit('+idx+',this)">'
+      +'<div class="mdh-chk"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>'
+      +'<img src="'+o.img[c]+'" alt="'+o.n+'" loading="eager"/>'
+      +'<div class="mdh-card-lbl">'+o.e+' '+o.n+'</div>'
+      +'</div>';
+  }).join('');
+}
+function mdhColor(col,btn){c=col;document.querySelectorAll('.mdh-cbtn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');mdhUpdate();}
+function mdhOutfit(idx,card){i=idx;document.querySelectorAll('.mdh-card').forEach(function(x){x.classList.remove('active');});card.classList.add('active');mdhUpdate();}
+function mdhUpdate(){
+  var o=O[i],img=document.getElementById('mdh-img');
+  img.classList.add('fading');
+  setTimeout(function(){img.src=o.img[c];img.classList.remove('fading');},250);
+  document.getElementById('mdh-price').textContent=o.p;
+}
+mdhRender();
+</script>
+</body>
+</html>
