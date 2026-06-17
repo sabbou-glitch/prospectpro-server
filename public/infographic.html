@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#fff;font-family:'Segoe UI',Arial,sans-serif;width:820px;}
+.wrap{background:#fff;padding:36px 48px 32px;width:820px;}
+
+.title{text-align:center;margin-bottom:30px;}
+.title h1{font-size:26px;font-weight:900;color:#b85c00;letter-spacing:.3px;}
+.title h1 sup{font-size:15px;}
+
+.main{display:grid;grid-template-columns:190px 1fr 190px;gap:0;align-items:center;min-height:320px;}
+
+.col{display:flex;flex-direction:column;gap:26px;}
+.feat{display:flex;flex-direction:column;align-items:center;gap:7px;}
+.feat-circle{width:88px;height:88px;border-radius:50%;border:3px dashed #d4843a;background:#fdf3ea;display:flex;align-items:center;justify-content:center;font-size:36px;}
+.feat p{font-size:12.5px;font-weight:700;color:#7a3a00;text-align:center;line-height:1.35;max-width:130px;}
+
+.center-bear{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;}
+.ruler-wrap{display:flex;align-items:center;justify-content:center;gap:12px;}
+
+.bear-svg{font-size:160px;line-height:1;text-align:center;display:block;}
+
+.ruler{display:flex;flex-direction:column;align-items:center;gap:0;}
+.ruler-body{width:3px;height:240px;background:#444;position:relative;border-radius:2px;}
+.ruler-body::before{content:'';position:absolute;top:0;left:-6px;width:15px;height:3px;background:#444;border-radius:2px;}
+.ruler-body::after{content:'';position:absolute;bottom:0;left:-6px;width:15px;height:3px;background:#444;border-radius:2px;}
+.ruler-lbl{font-size:12px;font-weight:700;color:#444;writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:1.5px;margin-top:6px;}
+
+.divider{border:none;border-top:2px dashed #e8c9a0;margin:22px 0;}
+
+.care{display:flex;justify-content:center;gap:28px;padding-top:2px;}
+.care-item{display:flex;flex-direction:column;align-items:center;gap:8px;width:110px;}
+.care-icon{width:62px;height:62px;border-radius:50%;border:3px solid #d4843a;background:#fff8f0;display:flex;align-items:center;justify-content:center;font-size:26px;}
+.care-item p{font-size:11px;font-weight:600;color:#7a3a00;text-align:center;line-height:1.35;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="title">
+    <h1>mydreamhug<sup>®</sup> — Caractéristiques du Teddy</h1>
+  </div>
+
+  <div class="main">
+    <!-- LEFT FEATURES -->
+    <div class="col">
+      <div class="feat">
+        <div class="feat-circle">🐻</div>
+        <p>Tête articulée</p>
+      </div>
+      <div class="feat">
+        <div class="feat-circle">🦾</div>
+        <p>Membres articulés</p>
+      </div>
+      <div class="feat">
+        <div class="feat-circle">🏷️</div>
+        <p>Logo mydreamhug</p>
+      </div>
+    </div>
+
+    <!-- CENTER BEAR -->
+    <div class="center-bear">
+      <div class="ruler-wrap">
+        <span class="bear-svg">🧸</span>
+        <div class="ruler">
+          <div class="ruler-body"></div>
+          <span class="ruler-lbl">30 cm</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT FEATURES -->
+    <div class="col">
+      <div class="feat">
+        <div class="feat-circle">🌸</div>
+        <p>Joues rosées avec blush</p>
+      </div>
+      <div class="feat">
+        <div class="feat-circle">👃</div>
+        <p>Nez en peluche sécurisé</p>
+      </div>
+      <div class="feat">
+        <div class="feat-circle">🪡</div>
+        <p>Semelles en tissu doux</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- CARE ICONS -->
+  <div class="care">
+    <div class="care-item">
+      <div class="care-icon">🤲</div>
+      <p>Lavage à la main uniquement</p>
+    </div>
+    <div class="care-item">
+      <div class="care-icon">💨</div>
+      <p>Séchage à l'air libre</p>
+    </div>
+    <div class="care-item">
+      <div class="care-icon">🚫</div>
+      <p>Pas de machine à laver</p>
+    </div>
+    <div class="care-item">
+      <div class="care-icon">🚫🔥</div>
+      <p>Pas de repassage</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
