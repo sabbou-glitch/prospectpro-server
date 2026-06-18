@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mydreamhug — Crée ton doudou de rêve</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --cream: #faf7f2;
+      --blush: #f5e6e8;
+      --rose: #d4a5b0;
+      --gold: #c9a96e;
+      --dark: #3a2d2f;
+      --muted: #8a7070;
+      --border: #e8ddd9;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--cream);
+      color: var(--dark);
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(250,247,242,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo {
+      font-size: 1.3rem; font-weight: 700; letter-spacing: -.5px; color: var(--dark);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--gold); }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: .9rem; transition: color .2s; }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-cart {
+      background: var(--dark); color: #fff;
+      border: none; padding: 8px 18px; border-radius: 100px;
+      font-size: .85rem; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 48px 24px 32px;
+    }
+    .hero-label {
+      display: inline-block;
+      font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--gold); font-weight: 700; margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800; line-height: 1.15; margin-bottom: 16px;
+    }
+    .hero p {
+      color: var(--muted); font-size: 1.05rem; max-width: 480px; margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* CONFIGURATOR */
+    .configurator {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+    @media (max-width: 768px) {
+      .configurator { grid-template-columns: 1fr; gap: 32px; }
+      nav .nav-links { display: none; }
+    }
+
+    /* LEFT: image */
+    .display-col {
+      position: sticky; top: 80px; align-self: start;
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      padding-right: 40px;
+    }
+    @media (max-width: 768px) { .display-col { position: static; padding-right: 0; } }
+
+    .img-frame {
+      width: 100%; max-width: 440px;
+      aspect-ratio: 3 / 4;
+      border-radius: 28px; overflow: hidden;
+      background: #fff;
+      box-shadow: 0 12px 48px rgba(58,45,47,.1);
+      position: relative;
+    }
+    #main-img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: opacity .22s ease, transform .22s ease;
+    }
+    #main-img.fading { opacity: 0; transform: scale(.97); }
+
+    .img-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: #fff; border-radius: 100px;
+      padding: 8px 16px; font-size: .8rem; font-weight: 600; color: var(--muted);
+      box-shadow: 0 2px 12px rgba(58,45,47,.08);
+    }
+    .img-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #5cb85c; }
+
+    /* RIGHT: config */
+    .config-col {
+      padding-left: 40px;
+      display: flex; flex-direction: column; gap: 28px;
+    }
+    @media (max-width: 768px) { .config-col { padding-left: 0; } }
+
+    .section-label {
+      font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--gold); font-weight: 700; margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* Colors */
+    .colors-row { display: flex; gap: 12px; }
+    .color-btn {
+      padding: 10px 22px; border-radius: 100px;
+      border: 2px solid var(--border); background: #fff;
+      cursor: pointer; font-size: .9rem; color: var(--dark);
+      font-weight: 500; transition: all .2s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .color-btn.active { border-color: var(--gold); background: #fdf9f3; color: var(--gold); }
+    .color-btn:hover:not(.active) { border-color: var(--rose); }
+    .color-swatch {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 1.5px solid rgba(0,0,0,.1);
+    }
+
+    /* Outfits grid */
+    .outfits-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    }
+    @media (max-width: 480px) { .outfits-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .outfit-card {
+      cursor: pointer; border-radius: 16px; overflow: hidden;
+      border: 2.5px solid transparent; transition: all .2s;
+      background: #fff; position: relative;
+    }
+    .outfit-card:hover { border-color: var(--rose); transform: translateY(-3px); box-shadow: 0 6px 20px rgba(212,165,176,.2); }
+    .outfit-card.active { border-color: var(--gold); box-shadow: 0 4px 20px rgba(201,169,110,.3); }
+    .outfit-card img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
+    .outfit-label {
+      padding: 7px 8px; font-size: .72rem; text-align: center;
+      font-weight: 600; color: var(--dark);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .outfit-card.active .outfit-label { color: var(--gold); }
+    .outfit-check {
+      position: absolute; top: 6px; right: 6px;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--gold); display: none;
+      align-items: center; justify-content: center;
+    }
+    .outfit-card.active .outfit-check { display: flex; }
+    .outfit-check svg { width: 12px; height: 12px; }
+
+    /* Info card */
+    .info-card {
+      background: #fff; border-radius: 18px; padding: 18px 22px;
+      border-left: 3px solid var(--gold);
+      box-shadow: 0 2px 12px rgba(58,45,47,.06);
+    }
+    .info-name { font-weight: 700; font-size: 1rem; margin-bottom: 5px; }
+    .info-desc { color: var(--muted); font-size: .85rem; line-height: 1.55; }
+
+    /* CTA */
+    .cta-area { display: flex; flex-direction: column; gap: 12px; }
+    .price-row { display: flex; align-items: baseline; gap: 10px; }
+    .price { font-size: 2rem; font-weight: 800; color: var(--dark); }
+    .price-note { font-size: .83rem; color: var(--muted); }
+    .btn-primary {
+      background: linear-gradient(135deg, #3a2d2f 0%, #6b4c50 100%);
+      color: #fff; border: none; padding: 17px 32px;
+      border-radius: 100px; font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: all .2s; letter-spacing: .3px; width: 100%;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(58,45,47,.25); }
+    .btn-secondary {
+      background: transparent; color: var(--dark);
+      border: 2px solid var(--border); padding: 14px 32px;
+      border-radius: 100px; font-size: .9rem; font-weight: 600;
+      cursor: pointer; transition: all .2s; width: 100%;
+    }
+    .btn-secondary:hover { border-color: var(--rose); color: var(--rose); }
+    .trust-row {
+      display: flex; gap: 16px; justify-content: center;
+      padding-top: 4px; flex-wrap: wrap;
+    }
+    .trust-item { font-size: .78rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">my<span>dream</span>hug</a>
+  <div class="nav-links">
+    <a href="#">Tenues</a>
+    <a href="#">Cadeaux</a>
+    <a href="#">Notre histoire</a>
+  </div>
+  <button class="nav-cart">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    Panier (0)
+  </button>
+</nav>
+
+<div class="hero">
+  <span class="hero-label">Personnalisation</span>
+  <h1>Crée ton doudou<br/>de rêve ✨</h1>
+  <p>Choisis la couleur et la tenue de ta peluche. Chaque doudou est unique, tout comme toi.</p>
+</div>
+
+<div class="configurator">
+  <!-- Image principale -->
+  <div class="display-col">
+    <div class="img-frame">
+      <img id="main-img"
+        src="https://cdn.shopify.com/s/files/1/0970/7270/9960/files/bunny-rose.jpg?v=1781658816"
+        alt="mydreamhug doudou" />
+    </div>
+    <div class="img-badge">
+      <span class="dot"></span>
+      Disponible · Expédié sous 48h
+    </div>
+  </div>
+
+  <!-- Panneau de configuration -->
+  <div class="config-col">
+
+    <div>
+      <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:10px">mydreamhug</div>
+      <h2 style="font-size:clamp(1.6rem,3vw,2.2rem);line-height:1.2;margin-bottom:12px">Doudou personnalisable</h2>
+      <p style="color:var(--muted);font-size:.95rem;line-height:1.6">Choisissez la couleur de votre peluche et habillez-la avec la tenue de votre choix. Idéal comme cadeau.</p>
+    </div>
+
+    <!-- Couleur -->
+    <div>
+      <div class="section-label">1 — Couleur du doudou</div>
+      <div class="colors-row">
+        <button class="color-btn active" data-color="blanc" onclick="selectColor('blanc', this)">
+          <span class="color-swatch" style="background:#f5f0eb"></span>
+          Blanc ivoire
+        </button>
+        <button class="color-btn" data-color="beige" onclick="selectColor('beige', this)">
+          <span class="color-swatch" style="background:#d4b896"></span>
+          Beige doux
+        </button>
+      </div>
+    </div>
+
+    <!-- Tenues -->
+    <div>
+      <div class="section-label">2 — Choisis une tenue</div>
+      <div class="outfits-grid" id="outfits-grid">
+        <!-- Générés par JS -->
+      </div>
+    </div>
+
+    <!-- Info sélection -->
+    <div class="info-card">
+      <div class="info-name" id="sel-name">Bunny Rose 🐰</div>
+      <div class="info-desc" id="sel-desc">Costume lapin avec petit sac à bandoulière assorti — parfait pour offrir</div>
+    </div>
+
+    <!-- Prix & CTA -->
+    <div class="cta-area">
+      <div class="price-row">
+        <span class="price" id="sel-price">49,90€</span>
+        <span class="price-note">livraison offerte dès 60€</span>
+      </div>
+      <button class="btn-primary">❤️ Ajouter au panier</button>
+      <button class="btn-secondary">Voir toutes les tenues</button>
+      <div class="trust-row">
+        <span class="trust-item">🇫🇷 Fait en France</span>
+        <span class="trust-item">🔒 Paiement sécurisé</span>
+        <span class="trust-item">↩️ Retour 30j</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const OUTFITS = [
+    {
+      name: 'Bunny Rose 🐰',
+      desc: 'Costume lapin avec petit sac à bandoulière assorti — parfait pour offrir',
+      price: '49,90€',
+      img: {
+        blanc: 'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/bunny-rose.jpg?v=1781658816',
+        beige: 'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/bunny-rose.jpg?v=1781658816'
+      }
+    },
+    {
+      name: 'Pyjama Hiver ❄️',
+      desc: 'Tenue douillette avec oreillettes et chaussons — pour les nuits câlines',
+      price: '44,90€',
+      img: {
+        blanc: 'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/pyjama-hiver.jpg?v=1781658815',
+        beige: 'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/pyjama-hiver.jpg?v=1781658815'
+      }
+    },
+    {
+      name: 'Ballerine 🩰',
+      desc: 'Robe tutu rose avec nœud satiné — élégante et girlish',
+      price: '44,90€',
+      img: {
+        blanc: 'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/ballerine.jpg?v=1781658816',
+        beige: 'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/ballerine.jpg?v=1781658816'
+      }
+    },
+    {
+      name: 'Dinosaure 🦕',
+      desc: 'Combinaison dinosaure avec capuche — pour les petits aventuriers',
+      price: '44,90€',
+      img: {
+        blanc: 'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/dinosaure.jpg?v=1781658814',
+        beige: 'https://cdn.shopify.com/s/files/1/0970/7270/9960/files/dinosaure.jpg?v=1781658814'
+      }
+    }
+  ];
+
+  let currentColor = 'blanc';
+  let currentOutfit = 0;
+
+  function renderOutfits() {
+    const grid = document.getElementById('outfits-grid');
+    grid.innerHTML = OUTFITS.map((o, i) => `
+      <div class="outfit-card ${i === 0 ? 'active' : ''}" onclick="selectOutfit(${i}, this)">
+        <div class="outfit-check">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <img src="${o.img[currentColor]}" alt="${o.name}" loading="lazy" />
+        <div class="outfit-label">${o.name.split(' ')[0]} ${o.name.split(' ')[1] || ''}</div>
+      </div>
+    `).join('');
+  }
+
+  function selectColor(color, btn) {
+    currentColor = color;
+    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    updateDisplay();
+  }
+
+  function selectOutfit(idx, card) {
+    currentOutfit = idx;
+    document.querySelectorAll('.outfit-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    updateDisplay();
+  }
+
+  function updateDisplay() {
+    const o = OUTFITS[currentOutfit];
+    const img = document.getElementById('main-img');
+    img.classList.add('fading');
+    setTimeout(() => {
+      img.src = o.img[currentColor] || o.img.blanc;
+      img.classList.remove('fading');
+    }, 220);
+    document.getElementById('sel-name').textContent = o.name;
+    document.getElementById('sel-desc').textContent = o.desc;
+    document.getElementById('sel-price').textContent = o.price;
+  }
+
+  renderOutfits();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1179px; height: 1179px; background: #ffffff; }
+.wrap {
+  width: 1179px;
+  height: 1179px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* The pig placeholder — big emoji */
+.pig {
+  font-size: 520px;
+  line-height: 1;
+  margin-left: 60px;
+  margin-top: 20px;
+  filter: drop-shadow(0 8px 32px rgba(0,0,0,0.08));
+  user-select: none;
+}
+/* Left side: vertical size indicator */
+.ruler {
+  position: absolute;
+  left: 68px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 700px;
+}
+.ruler-line {
+  width: 2px;
+  flex: 1;
+  background: #1a1a1a;
+  position: relative;
+}
+.ruler-line::before,
+.ruler-line::after {
+  content: '';
+  position: absolute;
+  left: -9px;
+  width: 20px;
+  height: 2px;
+  background: #1a1a1a;
+}
+.ruler-line::before { top: 0; }
+.ruler-line::after  { bottom: 0; }
+.ruler-label {
+  position: absolute;
+  top: 50%;
+  left: 18px;
+  transform: translateY(-50%);
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 38px;
+  font-weight: 700;
+  color: #1a1a1a;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+}
+.ruler-label span {
+  display: block;
+  font-size: 28px;
+  font-weight: 500;
+  color: #555;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="ruler">
+    <div class="ruler-line">
+      <div class="ruler-label">45 cm<span>17.71 in</span></div>
+    </div>
+  </div>
+  <div class="pig">🐷</div>
+</div>
+</body>
+</html>

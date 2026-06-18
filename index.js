@@ -1,10 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 const GOOGLE_API_KEY = 'AIzaSyB0NpuOwP69JULgf21OkyOgS0edSU3WXVk';
 

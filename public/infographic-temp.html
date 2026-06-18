@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#faf7f2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;width:900px;}
+.wrap{background:#faf7f2;padding:44px 56px 40px;width:900px;}
+
+/* HEADER */
+.header{text-align:center;margin-bottom:36px;}
+.eyebrow{font-size:10px;letter-spacing:3.5px;text-transform:uppercase;color:#c9a96e;font-weight:700;display:block;margin-bottom:10px;}
+.header h1{font-size:28px;font-weight:900;color:#3a2d2f;letter-spacing:-.3px;}
+.header h1 span{color:#c9a96e;}
+.header-line{width:60px;height:3px;background:linear-gradient(90deg,#c9a96e,#d4a5b0);border-radius:2px;margin:12px auto 0;}
+
+/* MAIN GRID — columns stretch to same height as center */
+.main{display:grid;grid-template-columns:210px 1fr 210px;align-items:stretch;margin-bottom:32px;}
+
+/* FEATURE COLUMNS — space-between so 3 items fill the full column height */
+.col{display:flex;flex-direction:column;justify-content:space-between;}
+
+/* Each feature row */
+.feat{display:flex;align-items:center;gap:14px;}
+.col-right .feat{flex-direction:row-reverse;}
+
+.feat-circle{width:72px;height:72px;min-width:72px;border-radius:50%;border:1.5px solid #e8ddd9;background:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 3px 12px rgba(58,45,47,.07);}
+.feat-text{}
+.feat-text p{font-size:12.5px;font-weight:700;color:#3a2d2f;line-height:1.3;}
+.feat-text span{font-size:10.5px;color:#8a7070;font-weight:500;display:block;margin-top:2px;line-height:1.3;}
+.col-right .feat-text{text-align:right;}
+
+/* CENTER BEAR */
+.center{display:flex;align-items:center;justify-content:center;padding:0 16px;}
+.bear-wrap{position:relative;display:inline-block;}
+.bear-img{width:270px;object-fit:contain;display:block;filter:drop-shadow(0 10px 28px rgba(58,45,47,.16));}
+.ruler-bar{position:absolute;right:-26px;top:4%;height:92%;display:flex;flex-direction:column;align-items:center;}
+.ruler-line{flex:1;width:2px;background:linear-gradient(to bottom,#c9a96e,#3a2d2f);border-radius:2px;}
+.ruler-cap{width:12px;height:2px;background:#3a2d2f;border-radius:2px;}
+.ruler-lbl{font-size:10px;font-weight:700;color:#3a2d2f;writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:1.5px;margin-top:6px;}
+
+/* DIVIDER */
+.divider{display:flex;align-items:center;gap:16px;margin-bottom:28px;}
+.divider-line{flex:1;height:1px;background:#e8ddd9;}
+.divider-dot{width:6px;height:6px;border-radius:50%;background:#c9a96e;flex-shrink:0;}
+
+/* CARE */
+.care-label{text-align:center;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#c9a96e;font-weight:700;margin-bottom:16px;}
+.care{display:flex;justify-content:center;gap:16px;}
+.care-item{display:flex;flex-direction:column;align-items:center;gap:10px;background:#fff;border-radius:16px;padding:16px 12px 14px;width:118px;box-shadow:0 2px 10px rgba(58,45,47,.07);border:1px solid #f0e9e4;}
+.care-icon{width:48px;height:48px;border-radius:50%;background:#fdf9f3;border:1.5px solid #e8ddd9;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.care-item p{font-size:11px;font-weight:600;color:#3a2d2f;text-align:center;line-height:1.35;}
+
+/* FOOTER */
+.footer{text-align:center;margin-top:24px;}
+.footer p{font-size:10px;color:#c9a96e;letter-spacing:2px;text-transform:uppercase;font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <span class="eyebrow">mydreamhug — peluche personnalisable</span>
+    <h1>Caractéristiques de <span>Teddy</span></h1>
+    <div class="header-line"></div>
+  </div>
+
+  <div class="main">
+
+    <!-- LEFT -->
+    <div class="col col-left">
+      <div class="feat">
+        <div class="feat-circle">🐻</div>
+        <div class="feat-text">
+          <p>Tête articulée</p>
+          <span>Pivote à 360°</span>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-circle">🦾</div>
+        <div class="feat-text">
+          <p>Membres articulés</p>
+          <span>Bras &amp; jambes mobiles</span>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="feat-circle">👶</div>
+        <div class="feat-text">
+          <p>Tous âges</p>
+          <span>Dès la naissance</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="center">
+      <div class="bear-wrap">
+        <img class="bear-img" src="http://localhost:9999/teddy-brun.jpg" alt="Teddy mydreamhug"/>
+        <div class="ruler-bar">
+          <div class="ruler-cap"></div>
+          <div class="ruler-line"></div>
+          <div class="ruler-cap"></div>
+          <span class="ruler-lbl">30 cm</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="col col-right">
+      <div class="feat">
+        <div class="feat-text">
+          <p>Joues rosées</p>
+          <span>Blush doux brodé</span>
+        </div>
+        <div class="feat-circle">🌸</div>
+      </div>
+      <div class="feat">
+        <div class="feat-text">
+          <p>Nez sécurisé</p>
+          <span>Peluche cousue</span>
+        </div>
+        <div class="feat-circle">👃</div>
+      </div>
+      <div class="feat">
+        <div class="feat-text">
+          <p>Semelles douces</p>
+          <span>Tissu velours</span>
+        </div>
+        <div class="feat-circle">🪡</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-dot"></div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="care-label">Entretien</div>
+  <div class="care">
+    <div class="care-item">
+      <div class="care-icon">🤲</div>
+      <p>Lavage à la main</p>
+    </div>
+    <div class="care-item">
+      <div class="care-icon">💨</div>
+      <p>Séchage à l'air libre</p>
+    </div>
+    <div class="care-item">
+      <div class="care-icon">🚫</div>
+      <p>Pas de machine à laver</p>
+    </div>
+    <div class="care-item">
+      <div class="care-icon">♨️</div>
+      <p>Pas de repassage</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>mydreamhug.fr</p>
+  </div>
+
+</div>
+</body>
+</html>
