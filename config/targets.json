@@ -1,0 +1,213 @@
+{
+  "_doc": "Catégories de cibles. 'naf' = codes d'activité INSEE (API recherche-entreprises). 'baseFit' (0-30) et 'basePotential' (0-25) = scores de départ avant analyse du site. 'keywords' = mots recherchés dans le nom. 'prestations' = prestations a priori pertinentes. 'requireKeyword' = le nom doit contenir un mot-clé (codes NAF trop larges).",
+  "departements": [
+    "95",
+    "75",
+    "92",
+    "93",
+    "94",
+    "78"
+  ],
+  "departementsVoisins": [
+    "60",
+    "77",
+    "91",
+    "27"
+  ],
+  "categories": {
+    "salle_reception": {
+      "label": "Salle de réception / domaine de mariage",
+      "priority": 1,
+      "query": "salle reception",
+      "naf": [
+        "68.20B",
+        "93.29Z",
+        "56.21Z",
+        "55.20Z"
+      ],
+      "keywords": [
+        "salle",
+        "domaine",
+        "reception",
+        "réception",
+        "chateau",
+        "château",
+        "manoir",
+        "orangerie",
+        "evenement",
+        "événement",
+        "mariage"
+      ],
+      "baseFit": 26,
+      "basePotential": 23,
+      "prestations": [
+        "bar_mocktails",
+        "bar_fleurs",
+        "bar_jus"
+      ],
+      "requireKeyword": true
+    },
+    "wedding_planner": {
+      "label": "Wedding planner",
+      "priority": 2,
+      "query": "wedding planner mariage",
+      "naf": [
+        "96.09Z",
+        "74.90B",
+        "82.30Z",
+        "93.29Z",
+        "73.11Z"
+      ],
+      "keywords": [
+        "wedding",
+        "mariage",
+        "planner",
+        "organisation",
+        "jour j"
+      ],
+      "baseFit": 27,
+      "basePotential": 24,
+      "prestations": [
+        "bar_fleurs",
+        "bar_mocktails"
+      ],
+      "requireKeyword": true
+    },
+    "agence_evenementielle": {
+      "label": "Agence événementielle",
+      "priority": 3,
+      "query": "agence evenementielle",
+      "naf": [
+        "82.30Z",
+        "93.29Z",
+        "73.11Z",
+        "70.21Z"
+      ],
+      "keywords": [
+        "event",
+        "évén",
+        "even",
+        "seminaire",
+        "séminaire",
+        "incentive",
+        "agence"
+      ],
+      "baseFit": 24,
+      "basePotential": 24,
+      "prestations": [
+        "bar_mocktails",
+        "bar_jus",
+        "bar_fleurs"
+      ],
+      "requireKeyword": true
+    },
+    "hotel": {
+      "label": "Hôtel avec salons / séminaires",
+      "priority": 4,
+      "query": "hotel seminaire",
+      "naf": [
+        "55.10Z"
+      ],
+      "keywords": [
+        "hotel",
+        "hôtel"
+      ],
+      "baseFit": 18,
+      "basePotential": 18,
+      "prestations": [
+        "bar_mocktails",
+        "bar_jus"
+      ],
+      "requireKeyword": false
+    },
+    "comite_entreprise": {
+      "label": "Comité social et économique (CSE)",
+      "priority": 5,
+      "query": "comite social economique",
+      "naf": [
+        "94.20Z",
+        "94.99Z"
+      ],
+      "keywords": [
+        "cse",
+        "comite",
+        "comité",
+        "social et economique"
+      ],
+      "baseFit": 20,
+      "basePotential": 18,
+      "prestations": [
+        "bar_mocktails",
+        "bar_fleurs"
+      ],
+      "requireKeyword": true
+    },
+    "mairie": {
+      "label": "Mairie / collectivité",
+      "priority": 6,
+      "query": "commune",
+      "naf": [
+        "84.11Z"
+      ],
+      "keywords": [
+        "commune",
+        "mairie",
+        "ville de"
+      ],
+      "baseFit": 18,
+      "basePotential": 20,
+      "prestations": [
+        "bar_jus",
+        "bar_mocktails",
+        "bar_fleurs"
+      ],
+      "requireKeyword": false
+    },
+    "salon_festival": {
+      "label": "Organisateur de salons / festivals",
+      "priority": 7,
+      "query": "organisation salon festival",
+      "naf": [
+        "82.30Z",
+        "90.01Z",
+        "90.04Z"
+      ],
+      "keywords": [
+        "salon",
+        "festival",
+        "foire",
+        "expo"
+      ],
+      "baseFit": 20,
+      "basePotential": 22,
+      "prestations": [
+        "bar_mocktails",
+        "bar_jus"
+      ],
+      "requireKeyword": true
+    },
+    "association": {
+      "label": "Association organisatrice d'événements",
+      "priority": 8,
+      "query": "association festivites",
+      "naf": [
+        "94.99Z"
+      ],
+      "keywords": [
+        "fete",
+        "fête",
+        "festivit",
+        "comite des fetes",
+        "comité des fêtes",
+        "animation"
+      ],
+      "baseFit": 16,
+      "basePotential": 16,
+      "prestations": [
+        "bar_jus",
+        "bar_mocktails"
+      ],
+      "requireKeyword": true
+    }
+  }
+}

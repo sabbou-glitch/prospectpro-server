@@ -1,0 +1,300 @@
+{
+  "name": "03 - Directeur IA : rapport quotidien (18h)",
+  "nodes": [
+    {
+      "id": "6e3c0ec7-6b83-4e2a-a9a0-63bd7794489b",
+      "name": "Chaque jour 18h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 18 * * 1-6"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "11748f53-3ed8-4ae2-acd8-0059070994f9",
+      "name": "Test manuel",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "119bbd8a-30af-4aad-9a48-68d1770880b1",
+      "name": "Lire PROSPECTS",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        250,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "PROSPECTS",
+          "mode": "name"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "76f42f80-cbec-4f5d-bdcd-beb15dcccb0a",
+      "name": "Lire CONTACTS",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        500,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "CONTACTS",
+          "mode": "name"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "10731eee-5a52-4bde-8929-eaa913358a07",
+      "name": "Lire DEVIS",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        750,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "DEVIS",
+          "mode": "name"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "8cde5ed3-41ea-4bb0-bc8d-a048650338d8",
+      "name": "Lire JOURNAL",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1000,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "JOURNAL",
+          "mode": "name"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "dcd94a55-af82-4e8e-b491-c78322324492",
+      "name": "Assembler les données",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1250,
+        100
+      ],
+      "parameters": {
+        "jsCode": "\nconst rows = (n) => $(n).all().map(i => i.json).filter(r => Object.keys(r).length > 1);\nreturn [{ json: { prospects: rows('Lire PROSPECTS'), contacts: rows('Lire CONTACTS'), devis: rows('Lire DEVIS'),\n  erreurs: rows('Lire JOURNAL').filter(j => j.Statut === 'erreur' && String(j.Date).startsWith(new Date().toISOString().slice(0,10))).map(j => j.Détail) } }];\n"
+      }
+    },
+    {
+      "id": "ec9878c4-3262-42dd-b3e9-41e3de2aa5b2",
+      "name": "Directeur IA - rapport",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1500,
+        100
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AGENTS_URL }}/agent/report",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.AGENTS_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 60000
+        }
+      }
+    },
+    {
+      "id": "f586ff25-c360-4d50-b0f2-05bfb0ca94b2",
+      "name": "Envoyer le rapport",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1750,
+        100
+      ],
+      "parameters": {
+        "sendTo": "={{ $env.REPORT_TO }}",
+        "subject": "={{ $json.sujet }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Chaque jour 18h": {
+      "main": [
+        [
+          {
+            "node": "Lire PROSPECTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test manuel": {
+      "main": [
+        [
+          {
+            "node": "Lire PROSPECTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire PROSPECTS": {
+      "main": [
+        [
+          {
+            "node": "Lire CONTACTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire CONTACTS": {
+      "main": [
+        [
+          {
+            "node": "Lire DEVIS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire DEVIS": {
+      "main": [
+        [
+          {
+            "node": "Lire JOURNAL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire JOURNAL": {
+      "main": [
+        [
+          {
+            "node": "Assembler les données",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assembler les données": {
+      "main": [
+        [
+          {
+            "node": "Directeur IA - rapport",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Directeur IA - rapport": {
+      "main": [
+        [
+          {
+            "node": "Envoyer le rapport",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Paris",
+    "saveManualExecutions": true
+  },
+  "tags": []
+}

@@ -1,0 +1,40 @@
+# Lance n8n + le serveur des agents sur le Mac (ou plus tard sur un petit serveur cloud).
+# Commande : docker compose up -d --build
+services:
+  agents:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - HOST=0.0.0.0
+      - DATA_DIR=/app/data
+    volumes:
+      - ./data:/app/data
+    # Pas de port publié vers l'extérieur : seul n8n (même réseau Docker) peut l'appeler.
+    expose:
+      - "3000"
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:2.46.6
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5678:5678"   # accessible uniquement depuis le Mac
+    environment:
+      - GENERIC_TIMEZONE=Europe/Paris
+      - TZ=Europe/Paris
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_RUNNERS_ENABLED=true
+      - AGENTS_URL=http://agents:3000
+      - AGENTS_TOKEN=${SERVER_API_TOKEN}
+      - GOOGLE_SHEET_ID=${GOOGLE_SHEET_ID}
+      - REPORT_TO=${REPORT_TO}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n:/workflows:ro
+    depends_on:
+      - agents
+
+volumes:
+  n8n_data:

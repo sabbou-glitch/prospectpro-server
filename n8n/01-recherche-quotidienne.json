@@ -1,0 +1,328 @@
+{
+  "name": "01 - Agent Recherche commerciale (quotidien)",
+  "nodes": [
+    {
+      "id": "cf96e72f-f795-46d8-8a1a-2a76dd709e3b",
+      "name": "Chaque jour 8h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1-6"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "81213397-fc1b-47fe-8b28-7c6c923d7e9f",
+      "name": "Test manuel",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "264414b1-2e32-4500-a2d4-c68aeda8811c",
+      "name": "Lire PROSPECTS",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        250,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "PROSPECTS",
+          "mode": "name"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "267cbef5-31de-4fb8-b29a-e76f6d3ea499",
+      "name": "Lire EXCLUSIONS",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        500,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "EXCLUSIONS",
+          "mode": "name"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5c322afc-44dd-4c55-8195-59c3875513e0",
+      "name": "Choisir les cibles du jour",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        750,
+        100
+      ],
+      "parameters": {
+        "jsCode": "\n// Rotation des cibles selon le jour (priorité aux lieux de réception et wedding planners).\nconst plan = {\n  1: ['salle_reception', 'wedding_planner'],\n  2: ['agence_evenementielle', 'salle_reception'],\n  3: ['wedding_planner', 'hotel'],\n  4: ['salle_reception', 'comite_entreprise'],\n  5: ['agence_evenementielle', 'mairie'],\n  6: ['salon_festival', 'association'],\n  0: ['salle_reception'],\n};\nconst jour = new Date().getDay();\nconst existing = $('Lire PROSPECTS').all().map(i => i.json).filter(r => r.Entreprise);\nconst exclusions = $('Lire EXCLUSIONS').all().map(i => i.json).filter(r => r.Email || r.Domaine || r.SIREN || r.Entreprise);\n// On n'envoie que les colonnes utiles au dédoublonnage (données minimales).\nconst slim = existing.map(r => ({ Entreprise: r.Entreprise, SIREN: r.SIREN, 'Site internet': r['Site internet'], 'Email professionnel': r['Email professionnel'], 'Code postal': r['Code postal'], Ville: r.Ville }));\nreturn (plan[jour] || ['salle_reception']).map(category => ({ json: { category, maxEnrich: 15, existing: slim, exclusions } }));\n"
+      }
+    },
+    {
+      "id": "58d27921-3185-4955-9367-44be418c47a1",
+      "name": "Agent Recherche",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        100
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AGENTS_URL }}/agent/research",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.AGENTS_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 600000
+        }
+      }
+    },
+    {
+      "id": "e0fbffe0-be07-490e-a06c-bcf3d8fea31a",
+      "name": "Prospects retenus",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1250,
+        100
+      ],
+      "parameters": {
+        "jsCode": "\nconst out = [];\nconst journal = [];\nfor (const item of $input.all()) {\n  const r = item.json;\n  for (const p of (r.prospects || [])) if (p['Score commercial'] >= 40) out.push({ json: p });\n  journal.push(`${r.categorie} p.${r.page} : ${JSON.stringify(r.stats)}${(r.errors || []).length ? ' — erreurs : ' + r.errors.slice(0, 3).join(' / ') : ''}`);\n}\n// Mémorise le journal pour le noeud suivant.\n$getWorkflowStaticData('global').dernierJournal = journal.join('\\n');\nreturn out;\n"
+      }
+    },
+    {
+      "id": "8f4cd602-7082-475b-84fb-13848f9e7cc9",
+      "name": "Ajouter à PROSPECTS",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1500,
+        100
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "PROSPECTS",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "2fb35c1f-bd8a-4fba-ba38-77d0d71efb6c",
+      "name": "Préparer journal",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1750,
+        100
+      ],
+      "parameters": {
+        "jsCode": "\nconst d = $getWorkflowStaticData('global').dernierJournal || '';\nreturn [{ json: { Date: new Date().toISOString(), Agent: 'recherche', Action: 'recherche_quotidienne', Détail: d, 'Coût (€)': '', Statut: 'ok' } }];\n"
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "3a4d1b17-a274-4aeb-a294-f82cccfd1374",
+      "name": "Écrire JOURNAL",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2000,
+        100
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "JOURNAL",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Chaque jour 8h": {
+      "main": [
+        [
+          {
+            "node": "Lire PROSPECTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test manuel": {
+      "main": [
+        [
+          {
+            "node": "Lire PROSPECTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire PROSPECTS": {
+      "main": [
+        [
+          {
+            "node": "Lire EXCLUSIONS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire EXCLUSIONS": {
+      "main": [
+        [
+          {
+            "node": "Choisir les cibles du jour",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Choisir les cibles du jour": {
+      "main": [
+        [
+          {
+            "node": "Agent Recherche",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Recherche": {
+      "main": [
+        [
+          {
+            "node": "Prospects retenus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prospects retenus": {
+      "main": [
+        [
+          {
+            "node": "Ajouter à PROSPECTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ajouter à PROSPECTS": {
+      "main": [
+        [
+          {
+            "node": "Préparer journal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer journal": {
+      "main": [
+        [
+          {
+            "node": "Écrire JOURNAL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Paris",
+    "saveManualExecutions": true
+  },
+  "tags": []
+}

@@ -1,0 +1,403 @@
+{
+  "name": "02 - Agent Prospection : brouillons d'emails (quotidien)",
+  "nodes": [
+    {
+      "id": "0202b89d-e921-419d-9e6f-529588bd1fbf",
+      "name": "Chaque jour 10h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "a70b2d87-cb8d-476d-bc59-bdb7d81cf5f8",
+      "name": "Test manuel",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "35b4b4b4-6641-4f92-9a57-63bb86f85330",
+      "name": "Lire PROSPECTS",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        250,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "PROSPECTS",
+          "mode": "name"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "dc45b05e-ade5-4203-910c-426b576b024d",
+      "name": "Lire EXCLUSIONS",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        500,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "EXCLUSIONS",
+          "mode": "name"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "4551a2f0-5c4e-409d-aef3-4ccbb64a2f98",
+      "name": "Sélection du jour",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        750,
+        100
+      ],
+      "parameters": {
+        "jsCode": "\n// Sélectionne au maximum 10 prospects/jour (montée en charge progressive), score >= 60, avec email.\nconst MAX_PAR_JOUR = 10;\nconst rows = $('Lire PROSPECTS').all().map(i => i.json);\nconst exclusions = $('Lire EXCLUSIONS').all().map(i => i.json).filter(r => r.Email || r.Domaine || r.SIREN || r.Entreprise);\nconst cibles = rows\n  .filter(r => r['Prochaine action'] === 'rediger_email' && r['Statut'] === 'nouveau')\n  .filter(r => Number(r['Score commercial']) >= 60 && r['Email professionnel'] && String(r['Opposition à la prospection']).toLowerCase() !== 'oui')\n  .sort((a, b) => Number(b['Score commercial']) - Number(a['Score commercial']))\n  .slice(0, MAX_PAR_JOUR);\nif (!cibles.length) return [];\nreturn [{ json: { prospects: cibles, exclusions, max: MAX_PAR_JOUR } }];\n"
+      }
+    },
+    {
+      "id": "4d4618c3-fdbd-47df-9225-dfec84353db0",
+      "name": "Agent Prospection",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        100
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AGENTS_URL }}/agent/draft",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.AGENTS_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 600000
+        }
+      }
+    },
+    {
+      "id": "649c0ff4-0585-43b1-905c-9265263baf00",
+      "name": "Un brouillon par ligne",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1250,
+        100
+      ],
+      "parameters": {
+        "jsCode": "\nconst out = [];\nfor (const b of ($input.first().json.brouillons || [])) out.push({ json: b });\nreturn out;\n"
+      }
+    },
+    {
+      "id": "a1fb926e-a299-43a7-8042-1a461470f455",
+      "name": "Brouillons conformes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1500,
+        100
+      ],
+      "parameters": {
+        "jsCode": "\n// Seuls les brouillons conformes partent dans Gmail ; les autres sont signalés dans le journal.\nreturn $input.all().filter(i => i.json.ok && i.json.to);\n"
+      }
+    },
+    {
+      "id": "93d563da-6dc0-474a-9d99-a3e4f824fe1a",
+      "name": "Créer brouillon Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1750,
+        100
+      ],
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.objet }}",
+        "emailType": "text",
+        "message": "={{ $json.corps }}",
+        "options": {
+          "sendTo": "={{ $json.to }}"
+        }
+      }
+    },
+    {
+      "id": "d8cb623c-d3c6-4b95-a32b-965d21a5f4f4",
+      "name": "Préparer mise à jour",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        0
+      ],
+      "parameters": {
+        "jsCode": "\nconst today = new Date().toISOString().slice(0, 10);\nreturn $('Brouillons conformes').all().map(i => ({ json: { ID: i.json.id, Statut: 'brouillon_pret', 'Prochaine action': 'valider_et_envoyer', 'Date du dernier contact': '' } }));\n"
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "24a54f38-92dc-4307-8115-b9767802ff2b",
+      "name": "Mettre à jour PROSPECTS",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2250,
+        0
+      ],
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "PROSPECTS",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "97019366-f21a-4432-af23-aa6718f7a68a",
+      "name": "Préparer historique",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        250
+      ],
+      "parameters": {
+        "jsCode": "\nconst drafts = $('Brouillons conformes').all();\nreturn drafts.map((d, idx) => ({ json: {\n  Date: new Date().toISOString(), 'ID prospect': d.json.id, Entreprise: '', Email: d.json.to, Direction: 'sortant',\n  Type: 'brouillon', Objet: d.json.objet, Résumé: `Accroche : ${d.json.accroche} — prestation : ${d.json.prestation}`,\n  'Catégorie réponse': '', 'Gmail thread ID': ($('Créer brouillon Gmail').all()[idx] || { json: {} }).json.id || '',\n  Campagne: 'premier-contact', Agent: 'prospection', 'Suite donnée': 'à valider par le dirigeant' } }));\n"
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "d133377d-e0f6-491f-99e3-1e5696cc80c3",
+      "name": "Ajouter à CONTACTS",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2250,
+        250
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "CONTACTS",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Chaque jour 10h": {
+      "main": [
+        [
+          {
+            "node": "Lire PROSPECTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test manuel": {
+      "main": [
+        [
+          {
+            "node": "Lire PROSPECTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire PROSPECTS": {
+      "main": [
+        [
+          {
+            "node": "Lire EXCLUSIONS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire EXCLUSIONS": {
+      "main": [
+        [
+          {
+            "node": "Sélection du jour",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sélection du jour": {
+      "main": [
+        [
+          {
+            "node": "Agent Prospection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Prospection": {
+      "main": [
+        [
+          {
+            "node": "Un brouillon par ligne",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Un brouillon par ligne": {
+      "main": [
+        [
+          {
+            "node": "Brouillons conformes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brouillons conformes": {
+      "main": [
+        [
+          {
+            "node": "Créer brouillon Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Créer brouillon Gmail": {
+      "main": [
+        [
+          {
+            "node": "Préparer mise à jour",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Préparer historique",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer mise à jour": {
+      "main": [
+        [
+          {
+            "node": "Mettre à jour PROSPECTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer historique": {
+      "main": [
+        [
+          {
+            "node": "Ajouter à CONTACTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Paris",
+    "saveManualExecutions": true
+  },
+  "tags": []
+}
