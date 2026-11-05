@@ -63,13 +63,20 @@ grep -c "=..*" .env
 enregistrées dans n8n deviennent illisibles.
 
 Ouvrir `.env` pour le compléter : `open -e .env` (TextEdit). Remplissez `SENDER_NAME`, `SENDER_EMAIL`,
-`SENDER_PHONE`, `SENDER_WEBSITE`, `REPORT_TO` (votre adresse pour le rapport). **Ne m'envoyez jamais ce fichier.**
+`SENDER_PHONE`, `SENDER_WEBSITE` et `REPORT_TO` (adresse qui reçoit le rapport). Exemple :
+```
+SENDER_NAME=Samy Abbou
+SENDER_EMAIL=maisonevenementidf@gmail.com
+SENDER_WEBSITE=maisonevenement.eu
+REPORT_TO=maisonevenementidf@gmail.com
+```
+ **Ne m'envoyez jamais ce fichier.**
 
 ---
 
 ## 4. Base Google Sheets (2 minutes)
 
-1. Ouvrir https://sheets.new (connecté avec le compte Gmail de l'entreprise). Nommer : « Maison de l'Événement – Base commerciale ».
+1. Ouvrir https://sheets.new connecté avec **maisonevenementidf@gmail.com** (ou utiliser votre Google Sheets existant : voir avec moi avant). Nommer : « Maison de l'Événement – Base commerciale ».
 2. Menu **Extensions → Apps Script**. Effacer le contenu, coller le fichier `sheets/creer-base-commerciale.gs`.
 3. 💾 Enregistrer → choisir la fonction `creerBaseCommerciale` → **Exécuter** → autoriser (« Paramètres avancés → Accéder au projet » si Google affiche un avertissement : c'est votre propre script).
 4. Une fenêtre affiche l'**identifiant** du fichier : le copier dans `.env` → `GOOGLE_SHEET_ID=`.
@@ -119,9 +126,11 @@ Après modification de `.env` : `docker compose up -d` (redémarre avec les nouv
 ### Connexion Gmail + Google Sheets dans n8n
 Guide officiel : https://docs.n8n.io/integrations/builtin/credentials/google/oauth-single-service/
 1. Dans le projet Google Cloud : **API et services → Bibliothèque** → activer **Gmail API**, **Google Sheets API**, **Google Drive API**.
-2. **Écran de consentement OAuth** : type **Interne** si votre adresse est Google Workspace (nom de domaine) ;
-   sinon **Externe**, puis ajoutez votre adresse comme utilisateur test et, une fois tout validé, cliquez
-   **Publier l'application** (sinon la connexion expire tous les 7 jours).
+2. **Écran de consentement OAuth** (compte `maisonevenementidf@gmail.com`, donc type **Externe**) :
+   nom de l'application « Agents Maison de l'Événement », email d'assistance `maisonevenementidf@gmail.com`,
+   ajoutez `maisonevenementidf@gmail.com` comme **utilisateur test**. Une fois les connexions validées, cliquez
+   **Publier l'application** (sinon la connexion expire tous les 7 jours). Google affichera « application non
+   validée » lors de la connexion : normal pour votre propre outil → « Paramètres avancés » → « Accéder ».
 3. **Identifiants → Créer → ID client OAuth → Application Web** ; URI de redirection autorisée :
    `http://localhost:5678/rest/oauth2-credential/callback`
 4. Dans n8n : **Credentials → Add** → « Google Sheets OAuth2 API » puis « Gmail OAuth2 API » → coller l'ID et le
