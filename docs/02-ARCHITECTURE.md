@@ -124,7 +124,7 @@ retenté 3 fois ; les erreurs sont journalisées (`data/journal-*.log` + onglet 
 | Délivrabilité Gmail | Brouillons validés à la main, puis montée progressive 10 → 25/jour |
 | Codes NAF imparfaits (ex. salles déclarées en « location immobilière ») | Filtre par mots-clés + qualification IA ; à ajuster après vos premiers retours |
 | Jeton OAuth Google expirant au bout de 7 jours (app Google en mode « Test ») | Procédure de publication dans le guide §5 |
-| Erreurs d'import n8n selon la version | Workflows générés pour n8n 2.x ; je corrige sur votre retour d'import |
+| Erreurs d'import n8n selon la version | ✅ Import des 5 workflows vérifié sur n8n 2.46.6 (version figée dans docker-compose) ; paramètres Gmail/Sheets contrôlés dans le code source de n8n |
 
 ## 8. Planning de construction
 
