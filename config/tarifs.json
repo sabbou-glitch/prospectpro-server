@@ -1,0 +1,74 @@
+{
+  "_doc": "Grille tarifaire reprise À L'IDENTIQUE de l'outil 'Devis et factures Maison de l'Événement' (oct. 2026). Statut 'a_valider' : l'agent ne l'utilise pour un envoi qu'après validation du dirigeant (passer 'valide' à true). Toute ligne à prix null n'est JAMAIS chiffrée par l'agent : elle est signalée au dirigeant.",
+  "valide": false,
+  "source": "Artefact Claude « Devis et factures Maison de l'Événement »",
+  "vendeur": {
+    "nom": "Samy Abbou · Entrepreneur individuel (auto-entrepreneur)",
+    "adresse": "(dans .env : VENDEUR_ADRESSE — non publié sur GitHub)",
+    "siret": "904 836 483 00019",
+    "site": "maisonevenement.eu",
+    "tva": "TVA non applicable, article 293 B du CGI"
+  },
+  "mocktails": {
+    "designation": "Mocktails 100 % sans alcool",
+    "detail": "Préparés sur place · matériel, verrerie, décoration du buffet et service compris",
+    "paliers": [
+      {
+        "aPartirDe": 0,
+        "prixUnitaire": 5.0
+      },
+      {
+        "aPartirDe": 100,
+        "prixUnitaire": 4.5
+      },
+      {
+        "aPartirDe": 150,
+        "prixUnitaire": 4.0
+      }
+    ]
+  },
+  "deplacement": {
+    "designation": "Déplacement depuis Ermont",
+    "detail": "Aller simple",
+    "prixParKm": 1.5
+  },
+  "options": {
+    "fumee": {
+      "designation": "Ouverture à la glace carbonique (effet fumée)",
+      "prix": 50
+    },
+    "fontaine": {
+      "designation": "Fontaine en cristal de 3 L à personnaliser",
+      "prix": 25
+    },
+    "presentoir": {
+      "designation": "Présentoir",
+      "prix": 10
+    },
+    "bouquet": {
+      "designation": "Bouquet de fleurs artificielles avec vase",
+      "prix": 25
+    },
+    "mignardises_sucrees": {
+      "designation": "Mignardises sucrées",
+      "prix": null,
+      "unite": "pièces"
+    },
+    "mignardises_salees": {
+      "designation": "Mignardises salées",
+      "prix": null,
+      "unite": "pièces"
+    },
+    "jus_33cl": {
+      "designation": "Bouteilles de jus 33 cl",
+      "prix": null,
+      "unite": "bouteilles"
+    }
+  },
+  "prestationsSansTarif": [
+    "bar_jus",
+    "bar_fleurs"
+  ],
+  "acompteRatio": 0.3,
+  "validiteJours": 10
+}

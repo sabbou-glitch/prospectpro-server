@@ -2,7 +2,7 @@
   "name": "01 - Agent Recherche commerciale (quotidien)",
   "nodes": [
     {
-      "id": "cf96e72f-f795-46d8-8a1a-2a76dd709e3b",
+      "id": "1177a834-e69f-4447-a281-1d8b3b0f253a",
       "name": "Chaque jour 8h",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -22,7 +22,7 @@
       }
     },
     {
-      "id": "81213397-fc1b-47fe-8b28-7c6c923d7e9f",
+      "id": "28a219ea-db5e-462b-992c-3adf1276167d",
       "name": "Test manuel",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -33,7 +33,7 @@
       "parameters": {}
     },
     {
-      "id": "264414b1-2e32-4500-a2d4-c68aeda8811c",
+      "id": "8eb34fbd-b463-47d5-b996-7208c725f00c",
       "name": "Lire PROSPECTS",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -59,7 +59,7 @@
       }
     },
     {
-      "id": "267cbef5-31de-4fb8-b29a-e76f6d3ea499",
+      "id": "794dc09b-e3df-4738-9edf-bea9577c4493",
       "name": "Lire EXCLUSIONS",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -85,7 +85,7 @@
       }
     },
     {
-      "id": "5c322afc-44dd-4c55-8195-59c3875513e0",
+      "id": "d2afd4cc-07cc-45dd-8e32-86ad036fa702",
       "name": "Choisir les cibles du jour",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -94,11 +94,11 @@
         100
       ],
       "parameters": {
-        "jsCode": "\n// Rotation des cibles selon le jour (priorité aux lieux de réception et wedding planners).\nconst plan = {\n  1: ['salle_reception', 'wedding_planner'],\n  2: ['agence_evenementielle', 'salle_reception'],\n  3: ['wedding_planner', 'hotel'],\n  4: ['salle_reception', 'comite_entreprise'],\n  5: ['agence_evenementielle', 'mairie'],\n  6: ['salon_festival', 'association'],\n  0: ['salle_reception'],\n};\nconst jour = new Date().getDay();\nconst existing = $('Lire PROSPECTS').all().map(i => i.json).filter(r => r.Entreprise);\nconst exclusions = $('Lire EXCLUSIONS').all().map(i => i.json).filter(r => r.Email || r.Domaine || r.SIREN || r.Entreprise);\n// On n'envoie que les colonnes utiles au dédoublonnage (données minimales).\nconst slim = existing.map(r => ({ Entreprise: r.Entreprise, SIREN: r.SIREN, 'Site internet': r['Site internet'], 'Email professionnel': r['Email professionnel'], 'Code postal': r['Code postal'], Ville: r.Ville }));\nreturn (plan[jour] || ['salle_reception']).map(category => ({ json: { category, maxEnrich: 15, existing: slim, exclusions } }));\n"
+        "jsCode": "\n// Rotation des cibles selon le jour (priorité aux lieux de réception et wedding planners).\nconst plan = {\n  1: ['salle_reception', 'wedding_planner'],\n  2: ['agence_evenementielle', 'traiteur'],\n  3: ['wedding_planner', 'comite_entreprise'],\n  4: ['salle_reception', 'hotel'],\n  5: ['agence_evenementielle', 'mairie'],\n  6: ['association', 'salon_festival'],\n  0: ['salle_reception'],\n};\nconst jour = new Date().getDay();\nconst existing = $('Lire PROSPECTS').all().map(i => i.json).filter(r => r.Entreprise);\nconst exclusions = $('Lire EXCLUSIONS').all().map(i => i.json).filter(r => r.Email || r.Domaine || r.SIREN || r.Entreprise);\n// On n'envoie que les colonnes utiles au dédoublonnage (données minimales).\nconst slim = existing.map(r => ({ Entreprise: r.Entreprise, SIREN: r.SIREN, 'Site internet': r['Site internet'], 'Email professionnel': r['Email professionnel'], 'Code postal': r['Code postal'], Ville: r.Ville }));\nreturn (plan[jour] || ['salle_reception']).map(category => ({ json: { category, maxEnrich: 15, existing: slim, exclusions } }));\n"
       }
     },
     {
-      "id": "58d27921-3185-4955-9367-44be418c47a1",
+      "id": "dd6736dd-1433-41fd-9ac7-c18090645934",
       "name": "Agent Recherche",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -130,7 +130,7 @@
       }
     },
     {
-      "id": "e0fbffe0-be07-490e-a06c-bcf3d8fea31a",
+      "id": "473e1e0b-afe6-4b35-bf33-2cdd8f56c043",
       "name": "Prospects retenus",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -143,7 +143,7 @@
       }
     },
     {
-      "id": "8f4cd602-7082-475b-84fb-13848f9e7cc9",
+      "id": "f3517bca-0fb8-4171-a1a7-561460f1ceea",
       "name": "Ajouter à PROSPECTS",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -173,7 +173,7 @@
       }
     },
     {
-      "id": "2fb35c1f-bd8a-4fba-ba38-77d0d71efb6c",
+      "id": "d643e880-048e-470a-90ef-65ae4639e6f0",
       "name": "Préparer journal",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -187,7 +187,7 @@
       "executeOnce": true
     },
     {
-      "id": "3a4d1b17-a274-4aeb-a294-f82cccfd1374",
+      "id": "ad93edc4-7873-4969-9a97-81987fbf1a2d",
       "name": "Écrire JOURNAL",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,

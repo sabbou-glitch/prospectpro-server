@@ -9,13 +9,17 @@ process.env.ANTHROPIC_API_KEY = '';
 process.env.SENDER_NAME = 'Prénom Test';
 
 const inseeFixture = {
-  total_results: 4, total_pages: 1,
+  total_results: 7, total_pages: 1,
   results: [
+    { siren: '900000005', nom_complet: 'SCI DU DOMAINE FICTIF', nature_juridique: '6540', activite_principale: '68.20B', siege: { code_postal: '95120', libelle_commune: 'ERMONT', departement: '95' } },
+    { siren: '900000006', nom_complet: 'SALLE FICTIVE OPPOSEE', opposition_diffusion_commerciale: true, activite_principale: '68.20B', siege: { code_postal: '95120', libelle_commune: 'ERMONT', departement: '95' } },
+    { siren: '900000007', nom_complet: 'SALLE FICTIVE DE LYON', activite_principale: '68.20B', siege: { code_postal: '69001', libelle_commune: 'LYON', departement: '69' },
+      matching_etablissements: [{ siret: '90000000700022', activite_principale: '68.20B', code_postal: '95200', libelle_commune: 'SARCELLES', departement: '95', latitude: '48.99', longitude: '2.38', etat_administratif: 'A' }] },
     { siren: '900000001', nom_raison_sociale: 'DOMAINE FICTIF DES TILLEULS', nom_complet: 'DOMAINE FICTIF DES TILLEULS', activite_principale: '68.20B', tranche_effectif_salarie: '03',
       siege: { siret: '90000000100011', adresse: '1 RUE IMAGINAIRE 95120 ERMONT', code_postal: '95120', libelle_commune: 'ERMONT', departement: '95', latitude: '48.99', longitude: '2.26' },
       dirigeants: [{ type_dirigeant: 'personne physique', nom: 'TESTEUR', prenoms: 'Alice', qualite: 'Gérant' }] },
     { siren: '900000002', nom_raison_sociale: 'SALLE FICTIVE LES LUMIERES', activite_principale: '93.29Z', tranche_effectif_salarie: '01',
-      siege: { siret: '90000000200011', adresse: '2 AVENUE INVENTEE 92000 NANTERRE', code_postal: '92000', libelle_commune: 'NANTERRE', departement: '92', latitude: '48.89', longitude: '2.20' } },
+      siege: { siret: '90000000200011', adresse: '2 AVENUE INVENTEE 95110 SANNOIS', code_postal: '95110', libelle_commune: 'SANNOIS', departement: '95', latitude: '48.97', longitude: '2.25' } },
     { siren: '900000003', nom_raison_sociale: 'GARAGE FICTIF AUTO', activite_principale: '68.20B',
       siege: { siret: '90000000300011', code_postal: '95100', libelle_commune: 'ARGENTEUIL', departement: '95' } },
     { siren: '900000004', nom_raison_sociale: 'SALLE DEJA CONNUE', activite_principale: '68.20B',

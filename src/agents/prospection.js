@@ -92,6 +92,35 @@ async function draftEmail(row, { exclusions = [] } = {}, deps = {}) {
   };
 }
 
+const PRESTA_TXT = {
+  'Bar à mocktails': 'notre bar à mocktails', 'Bar à jus': 'notre bar à jus de fruits frais', 'Bar à fleurs': 'notre bar à fleurs',
+  bar_mocktails: 'notre bar à mocktails', bar_jus: 'notre bar à jus de fruits frais', bar_fleurs: 'notre bar à fleurs',
+};
+
+/**
+ * Relance (sans IA, coût nul). Au maximum 2 relances, espacées (J+6 puis J+14), jamais après une réponse.
+ */
+function draftFollowUp(row, { exclusions = [] } = {}) {
+  const p = {
+    entreprise: row['Entreprise'], email: row['Email professionnel'], siren: row['SIREN'], siteWeb: row['Site internet'],
+    emailSource: row['Source email'], statut: row['Statut'], opposition: row['Opposition à la prospection'],
+  };
+  const check = canProspect(p, buildExclusionIndex(exclusions));
+  const n = Number(row['Relances'] || 0);
+  if (n >= 2) check.reasons.push('Nombre maximum de relances atteint (2).');
+  if ((row['Statut'] || '') !== 'contacte') check.reasons.push(`Statut « ${row['Statut']} » : pas de relance.`);
+  if (check.reasons.length) return { id: row['ID'], ok: false, bloque: true, raisons: check.reasons };
+  const presta = PRESTA_TXT[row['Prestation recommandée']] || 'nos animations';
+  const corps = n === 0
+    ? `Bonjour,\n\nJe me permets de revenir vers vous au sujet de mon précédent message concernant ${presta}.\n\nSi le sujet vous intéresse pour vos prochains événements, je peux vous envoyer notre plaquette ou vous appeler quelques minutes, au moment qui vous convient.`
+    : `Bonjour,\n\nDernier petit message de ma part : si ${presta} peut un jour compléter vos événements, n'hésitez pas à me répondre, même plus tard.\n\nJe ne vous relancerai plus d'ici là.`;
+  return {
+    id: row['ID'], ok: true, bloque: false, raisons: [], to: p.email, numeroRelance: n + 1,
+    objet: `${presta.replace(/^notre /, '').replace(/^./, (c) => c.toUpperCase())} pour vos événements${n === 0 ? '' : ' — dernier message'}`,
+    corps: `${corps}\n${signature()}\n${legalFooter(config.sender)}`,
+  };
+}
+
 /** Analyse une réponse reçue. L'opposition est détectée par règle AVANT l'IA (zéro risque d'oubli). */
 async function analyzeReply({ from, subject = '', text = '' }, deps = {}) {
   const cleaned = text.split(/\n(Le .+a écrit|On .+wrote|-----Original)/)[0].slice(0, 4000);
@@ -110,4 +139,4 @@ async function analyzeReply({ from, subject = '', text = '' }, deps = {}) {
   return { from, ...data, regle: false };
 }
 
-module.exports = { draftEmail, analyzeReply, checkDraft, DRAFT_SCHEMA };
+module.exports = { draftEmail, draftFollowUp, analyzeReply, checkDraft, DRAFT_SCHEMA };

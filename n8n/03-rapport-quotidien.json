@@ -2,7 +2,7 @@
   "name": "03 - Directeur IA : rapport quotidien (18h)",
   "nodes": [
     {
-      "id": "6e3c0ec7-6b83-4e2a-a9a0-63bd7794489b",
+      "id": "6f8e03e8-beb7-49fb-85cf-87858ef5817e",
       "name": "Chaque jour 18h",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -22,7 +22,7 @@
       }
     },
     {
-      "id": "11748f53-3ed8-4ae2-acd8-0059070994f9",
+      "id": "2a7cda47-544a-4563-8f8b-bada63ccbd2a",
       "name": "Test manuel",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -33,7 +33,7 @@
       "parameters": {}
     },
     {
-      "id": "119bbd8a-30af-4aad-9a48-68d1770880b1",
+      "id": "6ca58acf-1eff-4e6a-b4d0-cdaa855c0db7",
       "name": "Lire PROSPECTS",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -59,7 +59,7 @@
       }
     },
     {
-      "id": "76f42f80-cbec-4f5d-bdcd-beb15dcccb0a",
+      "id": "dd479ef2-1c8e-4591-a47c-d2ca8b11659b",
       "name": "Lire CONTACTS",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -85,7 +85,7 @@
       }
     },
     {
-      "id": "10731eee-5a52-4bde-8929-eaa913358a07",
+      "id": "08fc4624-e669-40f3-86a8-c35bc17a8b89",
       "name": "Lire DEVIS",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -111,7 +111,7 @@
       }
     },
     {
-      "id": "8cde5ed3-41ea-4bb0-bc8d-a048650338d8",
+      "id": "806b7f08-dbaa-42e2-92cb-f0811c596982",
       "name": "Lire JOURNAL",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -137,7 +137,7 @@
       }
     },
     {
-      "id": "dcd94a55-af82-4e8e-b491-c78322324492",
+      "id": "fd3224f9-6a02-4772-9cbd-1043815e07d1",
       "name": "Assembler les données",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -150,7 +150,7 @@
       }
     },
     {
-      "id": "ec9878c4-3262-42dd-b3e9-41e3de2aa5b2",
+      "id": "a3c2c872-88d0-466b-a545-02bc7b8adab9",
       "name": "Directeur IA - rapport",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -182,7 +182,7 @@
       }
     },
     {
-      "id": "f586ff25-c360-4d50-b0f2-05bfb0ca94b2",
+      "id": "5824cc2b-3b02-4bea-a763-2b4cf5a0451d",
       "name": "Envoyer le rapport",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,

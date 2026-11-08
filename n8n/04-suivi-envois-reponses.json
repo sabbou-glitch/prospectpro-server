@@ -1,0 +1,660 @@
+{
+  "name": "04 - Suivi des envois et des réponses (14h et 17h)",
+  "nodes": [
+    {
+      "id": "41d28cc3-c39b-417f-9acc-73e5cfcb1a82",
+      "name": "14h et 17h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 14,17 * * 1-6"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "58d682d4-5e3e-4837-b493-3a7a4f67e73d",
+      "name": "Test manuel",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "4dcf2a8f-5dff-46ae-b41d-a441e975e3cc",
+      "name": "Lire PROSPECTS",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        250,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "PROSPECTS",
+          "mode": "name"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "65ace344-f039-43ce-98e9-5a5daf5fae3c",
+      "name": "Lire EXCLUSIONS",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        450,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "EXCLUSIONS",
+          "mode": "name"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "8b2d18e4-d345-4201-9c34-32b01dfe1cc4",
+      "name": "Lire CONTACTS",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        650,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "CONTACTS",
+          "mode": "name"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b067cf08-3561-44a6-80bb-e540f471b650",
+      "name": "Gmail : messages envoyés",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        850,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": 100,
+        "simple": false,
+        "filters": {
+          "q": "in:sent newer_than:4d"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "fb9b2ef0-66e1-4644-a8d4-6c0995618524",
+      "name": "Gmail : messages reçus",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1050,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": 100,
+        "simple": false,
+        "filters": {
+          "q": "in:inbox newer_than:4d -category:promotions -category:social"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "a8465830-1f49-49d4-bdba-48c73a062c8b",
+      "name": "Envois détectés",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        -100
+      ],
+      "parameters": {
+        "jsCode": "\nconst norm = (s) => String(s || '').toLowerCase().trim();\nconst addr = (v) => { if (!v) return ''; if (typeof v === 'string') { const m = v.match(/<([^>]+)>/); return norm(m ? m[1] : v); }\n  if (v.value && v.value[0]) return norm(v.value[0].address); return ''; };\nconst allAddr = (v) => { if (!v) return []; if (typeof v === 'string') return v.split(',').map(addr); if (v.value) return v.value.map(x => norm(x.address)); return []; };\nconst today = new Date().toISOString().slice(0, 10);\nconst prospects = $('Lire PROSPECTS').all().map(i => i.json).filter(r => r.ID);\nconst byEmail = {}; const byDomain = {};\nconst PERSO = /@(gmail|yahoo|hotmail|outlook|live|orange|free|sfr|laposte|wanadoo|icloud|aol)\\./;\nfor (const p of prospects) { const e = norm(p['Email professionnel']); if (!e) continue; byEmail[e] = p; if (!PERSO.test(e)) byDomain[e.split('@')[1]] = p; }\nconst dejaVu = new Set($('Lire CONTACTS').all().map(i => String(i.json['Gmail thread ID'] || '')).filter(Boolean));\nconst find = (e) => byEmail[e] || byDomain[(e.split('@')[1] || '')];\n\n// Emails envoyés depuis Gmail à un prospect : statut \"contacte\" + compteur de relances.\nconst out = [];\nfor (const m of $('Gmail : messages envoyés').all().map(i => i.json)) {\n  if (!m.id || dejaVu.has(m.id)) continue;\n  for (const to of allAddr(m.to || m.To)) {\n    const p = find(to); if (!p) continue;\n    if (p.Statut === 'brouillon_pret') {\n      out.push({ json: { maj: { ID: p.ID, Statut: 'contacte', 'Date du dernier contact': today, 'Prochaine action': 'relance', Relances: 0 },\n        contact: { Date: new Date().toISOString(), 'ID prospect': p.ID, Entreprise: p.Entreprise, Email: to, Direction: 'sortant', Type: 'email', Objet: m.subject || m.Subject || '', Résumé: 'Premier contact envoyé', 'Catégorie réponse': '', 'Gmail thread ID': m.id, Campagne: 'premier-contact', Agent: 'prospection', 'Suite donnée': '' } } });\n    } else if (p.Statut === 'contacte' && p['Prochaine action'] === 'relance_brouillon_pret') {\n      const n = Number(p.Relances || 0) + 1;\n      out.push({ json: { maj: { ID: p.ID, 'Date du dernier contact': today, 'Prochaine action': n >= 2 ? 'aucune' : 'relance', Relances: n },\n        contact: { Date: new Date().toISOString(), 'ID prospect': p.ID, Entreprise: p.Entreprise, Email: to, Direction: 'sortant', Type: 'email', Objet: m.subject || m.Subject || '', Résumé: `Relance n°${n} envoyée`, 'Catégorie réponse': '', 'Gmail thread ID': m.id, Campagne: 'relance', Agent: 'prospection', 'Suite donnée': '' } } });\n    }\n    break;\n  }\n}\nreturn out;\n"
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "79ae661e-7736-47a0-9316-672f249495c9",
+      "name": "Statuts après envoi",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1550,
+        -200
+      ],
+      "parameters": {
+        "jsCode": "return $('Envois détectés').all().map(i => i.json.maj).filter(Boolean).map(j => ({ json: j }));"
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "b7f5ac27-ef60-48b2-90fd-d5becacccae3",
+      "name": "PROSPECTS : envois",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1800,
+        -200
+      ],
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "PROSPECTS",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "595adda2-dff1-4ea1-9d2b-f999c2010965",
+      "name": "Historique des envois",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1550,
+        0
+      ],
+      "parameters": {
+        "jsCode": "return $('Envois détectés').all().map(i => i.json.contact).filter(Boolean).map(j => ({ json: j }));"
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "456b5caf-7a52-417c-92e5-7c45e4063f31",
+      "name": "CONTACTS : envois",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1800,
+        0
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "CONTACTS",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "51e73fe5-0719-4e09-958e-74e4063215f9",
+      "name": "Réponses de prospects",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        250
+      ],
+      "parameters": {
+        "jsCode": "\nconst norm = (s) => String(s || '').toLowerCase().trim();\nconst addr = (v) => { if (!v) return ''; if (typeof v === 'string') { const m = v.match(/<([^>]+)>/); return norm(m ? m[1] : v); }\n  if (v.value && v.value[0]) return norm(v.value[0].address); return ''; };\nconst allAddr = (v) => { if (!v) return []; if (typeof v === 'string') return v.split(',').map(addr); if (v.value) return v.value.map(x => norm(x.address)); return []; };\nconst today = new Date().toISOString().slice(0, 10);\nconst prospects = $('Lire PROSPECTS').all().map(i => i.json).filter(r => r.ID);\nconst byEmail = {}; const byDomain = {};\nconst PERSO = /@(gmail|yahoo|hotmail|outlook|live|orange|free|sfr|laposte|wanadoo|icloud|aol)\\./;\nfor (const p of prospects) { const e = norm(p['Email professionnel']); if (!e) continue; byEmail[e] = p; if (!PERSO.test(e)) byDomain[e.split('@')[1]] = p; }\nconst dejaVu = new Set($('Lire CONTACTS').all().map(i => String(i.json['Gmail thread ID'] || '')).filter(Boolean));\nconst find = (e) => byEmail[e] || byDomain[(e.split('@')[1] || '')];\n\n// Emails reçus d'un prospect connu, pas encore analysés.\nconst out = [];\nfor (const m of $('Gmail : messages reçus').all().map(i => i.json)) {\n  if (!m.id || dejaVu.has(m.id)) continue;\n  const from = addr(m.from || m.From); const p = find(from); if (!p) continue;\n  out.push({ json: { from, subject: m.subject || m.Subject || '', text: (m.text || m.snippet || '').slice(0, 4000), gmailId: m.id, prospectId: p.ID, entreprise: p.Entreprise } });\n}\nreturn out;\n"
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "a4ccdf15-ec90-4a19-a18e-77b82cdb178c",
+      "name": "Analyse IA réponse",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1550,
+        250
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AGENTS_URL }}/agent/reply",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.AGENTS_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 120000
+        }
+      }
+    },
+    {
+      "id": "25edbc0c-44ca-419a-8f9a-db90d1bda1de",
+      "name": "Décisions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        250
+      ],
+      "parameters": {
+        "jsCode": "\nconst src = $('Réponses de prospects').all();\nconst today = new Date().toISOString().slice(0, 10);\nreturn $input.all().map((it, i) => {\n  const a = it.json; const m = src[i].json;\n  const oppose = a.categorie === 'opposition';\n  const statut = oppose ? 'refus' : (a.categorie === 'pas_interesse' ? 'refus' : (['absence_auto', 'mauvais_contact'].includes(a.categorie) ? 'contacte' : 'repondu'));\n  const action = oppose ? '' : ({ interesse: 'rappeler', demande_devis: 'preparer_devis', demande_info: 'envoyer_plaquette', plus_tard: 'relancer_plus_tard', pas_interesse: '' }[a.categorie] ?? 'lire_reponse');\n  return { json: {\n    contact: { Date: new Date().toISOString(), 'ID prospect': m.prospectId, Entreprise: m.entreprise, Email: m.from, Direction: 'entrant', Type: 'email', Objet: m.subject, Résumé: a.resume, 'Catégorie réponse': a.categorie, 'Gmail thread ID': m.gmailId, Campagne: '', Agent: 'suivi_reponses', 'Suite donnée': a.action_recommandee },\n    maj: Object.assign({ ID: m.prospectId, Statut: statut, 'Date du dernier contact': today, 'Prochaine action': action }, oppose ? { 'Opposition à la prospection': 'oui' } : {}),\n    exclusion: oppose ? { Date: new Date().toISOString(), Email: m.from, Domaine: '', Entreprise: m.entreprise, SIREN: '', Motif: 'Opposition à la prospection', 'Source de la demande': `Email du ${today}` } : null,\n  } };\n});\n"
+      }
+    },
+    {
+      "id": "be2810a5-1bfe-4f72-99b5-caf2d5da11b1",
+      "name": "Historique des réponses",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2050,
+        150
+      ],
+      "parameters": {
+        "jsCode": "return $('Décisions').all().map(i => i.json.contact).filter(Boolean).map(j => ({ json: j }));"
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "80c08bb6-4b8f-4120-ae02-864edbb0a747",
+      "name": "CONTACTS : réponses",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2300,
+        150
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "CONTACTS",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "8c4d5b27-743e-497f-a442-b8c3999d6fa4",
+      "name": "Statuts après réponse",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2050,
+        300
+      ],
+      "parameters": {
+        "jsCode": "return $('Décisions').all().map(i => i.json.maj).filter(Boolean).map(j => ({ json: j }));"
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "03b85588-5422-4a81-8bdc-f30c11c0a704",
+      "name": "PROSPECTS : réponses",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2300,
+        300
+      ],
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "PROSPECTS",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": []
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "7bf6f316-7a19-4f25-b6c9-35b2f164325f",
+      "name": "Oppositions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2050,
+        450
+      ],
+      "parameters": {
+        "jsCode": "return $('Décisions').all().map(i => i.json.exclusion).filter(Boolean).map(j => ({ json: j }));"
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "0422e151-5d7f-4889-bceb-498b66bcd047",
+      "name": "EXCLUSIONS : ajout",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2300,
+        450
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "EXCLUSIONS",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "14h et 17h": {
+      "main": [
+        [
+          {
+            "node": "Lire PROSPECTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test manuel": {
+      "main": [
+        [
+          {
+            "node": "Lire PROSPECTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire PROSPECTS": {
+      "main": [
+        [
+          {
+            "node": "Lire EXCLUSIONS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire EXCLUSIONS": {
+      "main": [
+        [
+          {
+            "node": "Lire CONTACTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire CONTACTS": {
+      "main": [
+        [
+          {
+            "node": "Gmail : messages envoyés",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail : messages envoyés": {
+      "main": [
+        [
+          {
+            "node": "Gmail : messages reçus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail : messages reçus": {
+      "main": [
+        [
+          {
+            "node": "Envois détectés",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Réponses de prospects",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Envois détectés": {
+      "main": [
+        [
+          {
+            "node": "Statuts après envoi",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Historique des envois",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Statuts après envoi": {
+      "main": [
+        [
+          {
+            "node": "PROSPECTS : envois",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Historique des envois": {
+      "main": [
+        [
+          {
+            "node": "CONTACTS : envois",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Réponses de prospects": {
+      "main": [
+        [
+          {
+            "node": "Analyse IA réponse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyse IA réponse": {
+      "main": [
+        [
+          {
+            "node": "Décisions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Décisions": {
+      "main": [
+        [
+          {
+            "node": "Historique des réponses",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Statuts après réponse",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Oppositions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Historique des réponses": {
+      "main": [
+        [
+          {
+            "node": "CONTACTS : réponses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Statuts après réponse": {
+      "main": [
+        [
+          {
+            "node": "PROSPECTS : réponses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Oppositions": {
+      "main": [
+        [
+          {
+            "node": "EXCLUSIONS : ajout",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Paris",
+    "saveManualExecutions": true
+  },
+  "tags": []
+}

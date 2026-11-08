@@ -10,7 +10,7 @@ const ONGLETS = {
     'Site internet', 'Email professionnel', 'Type email', 'Source email', 'Téléphone professionnel',
     'Contact professionnel', 'Fonction', 'Réseaux sociaux', 'Source', 'Date de découverte', 'Date de vérification',
     'Score commercial', 'Détail score', 'Classe', 'Prestation recommandée', 'Analyse', 'Distance Ermont (km)',
-    'Statut', 'Date du dernier contact', 'Prochaine action', 'Opposition à la prospection'],
+    'Statut', 'Date du dernier contact', 'Prochaine action', 'Opposition à la prospection', 'Relances'],
   CAMPAGNES: ['Nom de campagne', 'Type de clientèle', 'Prestation proposée', 'Zone géographique', 'Date de lancement',
     'Nombre de prospects', 'Nombre de messages envoyés', 'Nombre de réponses', 'Nombre de prospects intéressés',
     'Nombre de devis', 'Nombre de ventes'],
@@ -50,8 +50,11 @@ function creerBaseCommerciale() {
     const entetes = ONGLETS[nom];
     let sh = ss.getSheetByName(nom);
     if (!sh) sh = ss.insertSheet(nom);
-    const premiere = sh.getRange(1, 1, 1, entetes.length).getValues()[0];
-    if (premiere.join('') === '') sh.getRange(1, 1, 1, entetes.length).setValues([entetes]);
+    // Complète les en-têtes manquants sans toucher aux colonnes existantes.
+    const largeur = Math.max(sh.getLastColumn(), 1);
+    const existants = sh.getRange(1, 1, 1, largeur).getValues()[0].filter(String);
+    const manquants = entetes.filter(function (h) { return existants.indexOf(h) === -1; });
+    if (manquants.length) sh.getRange(1, existants.length + 1, 1, manquants.length).setValues([manquants]);
     sh.getRange(1, 1, 1, entetes.length).setFontWeight('bold').setBackground('#f3ece4').setFontColor('#5b4330');
     sh.setFrozenRows(1);
   });

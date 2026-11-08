@@ -1,0 +1,343 @@
+{
+  "name": "05 - Relances (brouillons, 16h)",
+  "nodes": [
+    {
+      "id": "ebbb8883-257c-4620-95ca-db249d45fd56",
+      "name": "Chaque jour 16h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 16 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "9d834dc0-faec-4da4-b476-4157d053b9ef",
+      "name": "Test manuel",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "57775042-e60f-48fc-bb95-02f6b5d31683",
+      "name": "Lire PROSPECTS",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        250,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "PROSPECTS",
+          "mode": "name"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "e36c5013-a7e5-4340-97af-9f356929f919",
+      "name": "Lire EXCLUSIONS",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        500,
+        100
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "EXCLUSIONS",
+          "mode": "name"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "f9908ff6-9756-4058-a359-eaa23e861cac",
+      "name": "Prospects à relancer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        750,
+        100
+      ],
+      "parameters": {
+        "jsCode": "\n// Relance 1 à J+6, relance 2 à J+8 après la première ; jamais après une réponse ou une opposition.\nconst jours = (d) => d ? (Date.now() - new Date(d).getTime()) / 86400000 : 0;\nconst rows = $('Lire PROSPECTS').all().map(i => i.json);\nconst exclusions = $('Lire EXCLUSIONS').all().map(i => i.json).filter(r => r.Email || r.Domaine || r.SIREN || r.Entreprise);\nconst cibles = rows.filter(r => r.Statut === 'contacte' && r['Prochaine action'] === 'relance'\n  && String(r['Opposition à la prospection']).toLowerCase() !== 'oui'\n  && jours(r['Date du dernier contact']) >= (Number(r.Relances || 0) === 0 ? 6 : 8)).slice(0, 15);\nif (!cibles.length) return [];\nreturn [{ json: { prospects: cibles, exclusions, max: 15 } }];\n"
+      }
+    },
+    {
+      "id": "1a00cd1e-a2b3-4558-9aa5-c86f17174609",
+      "name": "Agent Prospection : relances",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        100
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AGENTS_URL }}/agent/followup",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "={{ $env.AGENTS_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 60000
+        }
+      }
+    },
+    {
+      "id": "3908fe25-2143-4480-ab9d-7e3fa92148f4",
+      "name": "Une relance par ligne",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1250,
+        100
+      ],
+      "parameters": {
+        "jsCode": "return ($input.first().json.relances || []).map(r => ({ json: r }));"
+      }
+    },
+    {
+      "id": "e3b757b6-d472-402b-ba33-48954cc7f7b4",
+      "name": "Relances conformes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1500,
+        100
+      ],
+      "parameters": {
+        "jsCode": "return $input.all().filter(i => i.json.ok && i.json.to);"
+      }
+    },
+    {
+      "id": "19c3f9a4-5413-43f1-b004-d7ed5aca8ce0",
+      "name": "Créer brouillon de relance",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1750,
+        100
+      ],
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.objet }}",
+        "emailType": "text",
+        "message": "={{ $json.corps }}",
+        "options": {
+          "sendTo": "={{ $json.to }}"
+        }
+      }
+    },
+    {
+      "id": "63a3ef2f-9b95-492b-a277-fd22cbb3a191",
+      "name": "Marquer en attente d'envoi",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        100
+      ],
+      "parameters": {
+        "jsCode": "\nreturn $('Relances conformes').all().map(i => ({ json: { ID: i.json.id, 'Prochaine action': 'relance_brouillon_pret' } }));\n"
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "9a1d175e-123d-479f-93c8-703c174af5c6",
+      "name": "PROSPECTS : relance prête",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2250,
+        100
+      ],
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "PROSPECTS",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": []
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Chaque jour 16h": {
+      "main": [
+        [
+          {
+            "node": "Lire PROSPECTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test manuel": {
+      "main": [
+        [
+          {
+            "node": "Lire PROSPECTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire PROSPECTS": {
+      "main": [
+        [
+          {
+            "node": "Lire EXCLUSIONS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lire EXCLUSIONS": {
+      "main": [
+        [
+          {
+            "node": "Prospects à relancer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prospects à relancer": {
+      "main": [
+        [
+          {
+            "node": "Agent Prospection : relances",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Prospection : relances": {
+      "main": [
+        [
+          {
+            "node": "Une relance par ligne",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Une relance par ligne": {
+      "main": [
+        [
+          {
+            "node": "Relances conformes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Relances conformes": {
+      "main": [
+        [
+          {
+            "node": "Créer brouillon de relance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Créer brouillon de relance": {
+      "main": [
+        [
+          {
+            "node": "Marquer en attente d'envoi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marquer en attente d'envoi": {
+      "main": [
+        [
+          {
+            "node": "PROSPECTS : relance prête",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Paris",
+    "saveManualExecutions": true
+  },
+  "tags": []
+}

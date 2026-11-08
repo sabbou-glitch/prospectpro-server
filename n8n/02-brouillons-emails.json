@@ -2,7 +2,7 @@
   "name": "02 - Agent Prospection : brouillons d'emails (quotidien)",
   "nodes": [
     {
-      "id": "0202b89d-e921-419d-9e6f-529588bd1fbf",
+      "id": "0b20cf1a-4644-4850-8686-a3f85107f674",
       "name": "Chaque jour 10h",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -22,7 +22,7 @@
       }
     },
     {
-      "id": "a70b2d87-cb8d-476d-bc59-bdb7d81cf5f8",
+      "id": "c0f97aa9-2334-4e7d-bc97-1eb18327bde7",
       "name": "Test manuel",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -33,7 +33,7 @@
       "parameters": {}
     },
     {
-      "id": "35b4b4b4-6641-4f92-9a57-63bb86f85330",
+      "id": "df603022-c1c8-48e8-8bd8-3ebab62354b6",
       "name": "Lire PROSPECTS",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -59,7 +59,7 @@
       }
     },
     {
-      "id": "dc45b05e-ade5-4203-910c-426b576b024d",
+      "id": "ba1df274-9b77-4b19-b6c9-ac1d69b7231c",
       "name": "Lire EXCLUSIONS",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -85,7 +85,7 @@
       }
     },
     {
-      "id": "4551a2f0-5c4e-409d-aef3-4ccbb64a2f98",
+      "id": "596bfa5f-08ce-4eda-add0-861033ebdf31",
       "name": "Sélection du jour",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -98,7 +98,7 @@
       }
     },
     {
-      "id": "4d4618c3-fdbd-47df-9225-dfec84353db0",
+      "id": "3291bec2-3e14-4e4c-ad15-e5a4569561f8",
       "name": "Agent Prospection",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -130,7 +130,7 @@
       }
     },
     {
-      "id": "649c0ff4-0585-43b1-905c-9265263baf00",
+      "id": "6c87d174-3c53-4971-8427-79fcf9743d91",
       "name": "Un brouillon par ligne",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -143,7 +143,7 @@
       }
     },
     {
-      "id": "a1fb926e-a299-43a7-8042-1a461470f455",
+      "id": "41cc22ef-661e-4c4b-ac83-7e479a124d49",
       "name": "Brouillons conformes",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -156,7 +156,7 @@
       }
     },
     {
-      "id": "93d563da-6dc0-474a-9d99-a3e4f824fe1a",
+      "id": "6395121c-e0b5-44a4-8c0d-c611eba4f9a9",
       "name": "Créer brouillon Gmail",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
@@ -175,7 +175,7 @@
       }
     },
     {
-      "id": "d8cb623c-d3c6-4b95-a32b-965d21a5f4f4",
+      "id": "bd22a777-ec41-4f8e-aec0-b323568f31f0",
       "name": "Préparer mise à jour",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -189,7 +189,7 @@
       "executeOnce": true
     },
     {
-      "id": "24a54f38-92dc-4307-8115-b9767802ff2b",
+      "id": "1cc1ed6c-c325-4ab0-87b2-e932298c456e",
       "name": "Mettre à jour PROSPECTS",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
@@ -221,7 +221,7 @@
       }
     },
     {
-      "id": "97019366-f21a-4432-af23-aa6718f7a68a",
+      "id": "5d9a4953-76af-436e-b2b2-f5d3db7a948b",
       "name": "Préparer historique",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -235,7 +235,7 @@
       "executeOnce": true
     },
     {
-      "id": "d133377d-e0f6-491f-99e3-1e5696cc80c3",
+      "id": "ebe3a916-658a-4d47-812a-b1761747f1b4",
       "name": "Ajouter à CONTACTS",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,

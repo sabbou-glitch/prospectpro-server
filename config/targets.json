@@ -1,5 +1,5 @@
 {
-  "_doc": "Catégories de cibles. 'naf' = codes d'activité INSEE (API recherche-entreprises). 'baseFit' (0-30) et 'basePotential' (0-25) = scores de départ avant analyse du site. 'keywords' = mots recherchés dans le nom. 'prestations' = prestations a priori pertinentes. 'requireKeyword' = le nom doit contenir un mot-clé (codes NAF trop larges).",
+  "_doc": "Catégories de cibles, calibrées sur le registre officiel (nov. 2026). 'queries' = UN mot par requête (la recherche est un ET), tournés automatiquement. 'naf' = codes d'activité. 'zones' = départements, du plus proche au plus loin. 'baseFit' (0-30) / 'basePotential' (0-25) = scores avant analyse du site. 'requireKeyword' = le nom doit contenir un mot-clé.",
   "departements": [
     "95",
     "75",
@@ -14,29 +14,60 @@
     "91",
     "27"
   ],
+  "zones": [
+    [
+      "95"
+    ],
+    [
+      "78",
+      "92"
+    ],
+    [
+      "75"
+    ],
+    [
+      "93",
+      "94"
+    ]
+  ],
   "categories": {
     "salle_reception": {
       "label": "Salle de réception / domaine de mariage",
       "priority": 1,
-      "query": "salle reception",
+      "queries": [
+        "reception",
+        "receptions",
+        "domaine",
+        "chateau",
+        "salle",
+        "evenements",
+        "manoir",
+        "orangerie"
+      ],
       "naf": [
         "68.20B",
         "93.29Z",
-        "56.21Z",
-        "55.20Z"
+        "82.30Z",
+        "55.20Z",
+        "77.29Z",
+        "55.10Z"
       ],
       "keywords": [
         "salle",
         "domaine",
         "reception",
-        "réception",
         "chateau",
-        "château",
         "manoir",
         "orangerie",
         "evenement",
-        "événement",
-        "mariage"
+        "mariage",
+        "palace",
+        "jardin",
+        "moulin",
+        "ferme",
+        "pavillon",
+        "orangerie",
+        "salons"
       ],
       "baseFit": 26,
       "basePotential": 23,
@@ -50,20 +81,26 @@
     "wedding_planner": {
       "label": "Wedding planner",
       "priority": 2,
-      "query": "wedding planner mariage",
+      "queries": [
+        "wedding",
+        "mariage",
+        "mariages",
+        "planner"
+      ],
       "naf": [
-        "96.09Z",
-        "74.90B",
         "82.30Z",
         "93.29Z",
+        "96.09Z",
+        "74.90B",
+        "70.22Z",
         "73.11Z"
       ],
       "keywords": [
         "wedding",
         "mariage",
         "planner",
-        "organisation",
-        "jour j"
+        "jour j",
+        "noces"
       ],
       "baseFit": 27,
       "basePotential": 24,
@@ -76,19 +113,25 @@
     "agence_evenementielle": {
       "label": "Agence événementielle",
       "priority": 3,
-      "query": "agence evenementielle",
+      "queries": [
+        "event",
+        "events",
+        "evenementiel",
+        "evenementielle",
+        "evenements"
+      ],
       "naf": [
         "82.30Z",
         "93.29Z",
         "73.11Z",
+        "90.01Z",
         "70.21Z"
       ],
       "keywords": [
         "event",
-        "évén",
         "even",
+        "evenementiel",
         "seminaire",
-        "séminaire",
         "incentive",
         "agence"
       ],
@@ -101,16 +144,45 @@
       ],
       "requireKeyword": true
     },
+    "traiteur": {
+      "label": "Traiteur (partenaire / prescripteur)",
+      "priority": 4,
+      "queries": [
+        "traiteur",
+        "reception",
+        "receptions"
+      ],
+      "naf": [
+        "56.21Z"
+      ],
+      "keywords": [
+        "traiteur",
+        "reception",
+        "gastronomie",
+        "cuisine",
+        "saveurs",
+        "buffet"
+      ],
+      "baseFit": 22,
+      "basePotential": 23,
+      "prestations": [
+        "bar_mocktails",
+        "bar_jus"
+      ],
+      "requireKeyword": false
+    },
     "hotel": {
       "label": "Hôtel avec salons / séminaires",
-      "priority": 4,
-      "query": "hotel seminaire",
+      "priority": 5,
+      "queries": [
+        "hotel",
+        "seminaire"
+      ],
       "naf": [
         "55.10Z"
       ],
       "keywords": [
-        "hotel",
-        "hôtel"
+        "hotel"
       ],
       "baseFit": 18,
       "basePotential": 18,
@@ -122,17 +194,26 @@
     },
     "comite_entreprise": {
       "label": "Comité social et économique (CSE)",
-      "priority": 5,
-      "query": "comite social economique",
+      "priority": 6,
+      "queries": [
+        "cse",
+        "comite",
+        "oeuvres"
+      ],
       "naf": [
         "94.20Z",
-        "94.99Z"
+        "94.99Z",
+        "88.99B",
+        "70.21Z",
+        "91.03Z"
       ],
       "keywords": [
         "cse",
         "comite",
-        "comité",
-        "social et economique"
+        "oeuvres sociales",
+        "social et economique",
+        "comite d entreprise",
+        "action sociale"
       ],
       "baseFit": 20,
       "basePotential": 18,
@@ -144,15 +225,18 @@
     },
     "mairie": {
       "label": "Mairie / collectivité",
-      "priority": 6,
-      "query": "commune",
+      "priority": 7,
+      "queries": [
+        "mairie",
+        "commune"
+      ],
       "naf": [
         "84.11Z"
       ],
       "keywords": [
         "commune",
         "mairie",
-        "ville de"
+        "ville"
       ],
       "baseFit": 18,
       "basePotential": 20,
@@ -163,14 +247,47 @@
       ],
       "requireKeyword": false
     },
+    "association": {
+      "label": "Comité des fêtes / association festive",
+      "priority": 8,
+      "queries": [
+        "fetes",
+        "festivites",
+        "animation"
+      ],
+      "naf": [
+        "94.99Z",
+        "93.29Z",
+        "90.01Z"
+      ],
+      "keywords": [
+        "fete",
+        "festivit",
+        "animation",
+        "loisirs"
+      ],
+      "baseFit": 16,
+      "basePotential": 16,
+      "prestations": [
+        "bar_jus",
+        "bar_mocktails"
+      ],
+      "requireKeyword": true
+    },
     "salon_festival": {
       "label": "Organisateur de salons / festivals",
-      "priority": 7,
-      "query": "organisation salon festival",
+      "priority": 9,
+      "queries": [
+        "festival",
+        "salon",
+        "foire"
+      ],
       "naf": [
         "82.30Z",
         "90.01Z",
-        "90.04Z"
+        "90.04Z",
+        "94.99Z",
+        "93.29Z"
       ],
       "keywords": [
         "salon",
@@ -183,29 +300,6 @@
       "prestations": [
         "bar_mocktails",
         "bar_jus"
-      ],
-      "requireKeyword": true
-    },
-    "association": {
-      "label": "Association organisatrice d'événements",
-      "priority": 8,
-      "query": "association festivites",
-      "naf": [
-        "94.99Z"
-      ],
-      "keywords": [
-        "fete",
-        "fête",
-        "festivit",
-        "comite des fetes",
-        "comité des fêtes",
-        "animation"
-      ],
-      "baseFit": 16,
-      "basePotential": 16,
-      "prestations": [
-        "bar_jus",
-        "bar_mocktails"
       ],
       "requireKeyword": true
     }

@@ -1,5 +1,7 @@
 # Phase 3 — Installation sur votre Mac
 
+> **Le plus simple :** suivez [A-FAIRE.md](../A-FAIRE.md) — un script fait automatiquement les étapes 1, 3 et 5 ci-dessous.
+
 Ouvrez le **Terminal** : `Cmd + Espace` → tapez « Terminal » → Entrée.
 Collez chaque bloc, appuyez sur Entrée, et **envoyez-moi le résultat** aux étapes marquées 📤.
 

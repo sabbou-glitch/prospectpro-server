@@ -97,8 +97,8 @@ Rapport HTML quotidien à 18h : actions qui vous attendent, indicateurs, dépens
 |---|---|---|
 | 08h00 (lun–sam) | 01 – Recherche + qualification + enregistrement | ✅ fourni |
 | 10h00 (lun–ven) | 02 – Brouillons d'emails (10/jour max) | ✅ fourni |
-| 14h00 | 04 – Analyse des réponses Gmail → CONTACTS / EXCLUSIONS | prochaine étape |
-| 16h00 | 05 – Relances (J+6, J+14, 2 relances max) | prochaine étape |
+| 14h00 et 17h00 | 04 – Envois détectés + analyse des réponses → CONTACTS / EXCLUSIONS / PROSPECTS | ✅ fourni |
+| 16h00 | 05 – Relances en brouillon (J+6, puis J+8 après la 1re ; 2 maximum ; sans IA) | ✅ fourni |
 | 18h00 | 03 – Rapport quotidien au dirigeant | ✅ fourni |
 
 La recherche et la qualification sont fusionnées (un seul passage = moins d'appels). Chaque appel HTTP est
@@ -130,11 +130,12 @@ retenté 3 fois ; les erreurs sont journalisées (`data/journal-*.log` + onglet 
 
 | Étape | Contenu | Validation par vous |
 |---|---|---|
-| **1. (fait)** | Audit, moteur Agent Recherche + Prospection + rapport, tests sur données fictives, workflows 01-02-03 | Lecture de ce document |
+| **1. (fait)** | Audit, moteur Agent Recherche + Prospection + rapport, tests, workflows 01-02-03 | Lecture de ce document |
+| **1 bis. (fait)** | Calibrage sur le **registre réel** (établissements locaux, exclusion des oppositions, SCI, traiteurs ajoutés), workflows 04-05, Agent Devis v1 (grille de votre outil), installation automatique | — |
 | **2.** | Installation Mac : Docker, n8n, Google Sheets, connexions Gmail/Sheets, clés API | Résultats des commandes |
 | **3.** | Premier essai réel sur 1 catégorie (salles de réception 95) → vous notez 20 prospects | Qualité des prospects |
 | **4.** | Brouillons réels → vous validez le ton et le modèle | Modèle d'email |
-| **5.** | Workflows 04 (réponses) et 05 (relances), liste d'exclusion automatique | Tests |
+| **5.** | Test réel des workflows 04 et 05 (suivi des réponses, relances, exclusions) | Tests |
 | **6.** | Mise en production : recherche quotidienne, envoi progressif autorisé | Accord d'envoi |
 | **7.** | Agent Devis (audit Netlify + Sheets + PDF existants), puis Marketing, Production, Finance | Grille tarifaire |
 | **8.** | Migration VPS (accord financier requis) | Accord de dépense |

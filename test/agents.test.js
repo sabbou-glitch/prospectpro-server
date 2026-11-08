@@ -53,11 +53,15 @@ test('agent recherche : chaîne complète avec données fictives', async () => {
     exclusions: [],
   }, { fetchImpl: makeFetch(calls), callJson: fakeClaude(llm), placesKey: 'cle-test' });
 
-  assert.equal(res.stats.trouves, 4);
+  assert.equal(res.stats.trouves, 5, 'SCI et organisation opposée retirées dès le registre');
+  assert.equal(res.stats.oppositionRegistre, 1);
   assert.equal(res.stats.doublons, 1, 'la salle déjà connue est ignorée');
   assert.equal(res.stats.horsCible, 1, 'le garage est écarté');
-  assert.equal(res.prospects.length, 2);
-  const [top, second] = res.prospects;
+  assert.equal(res.prospects.length, 3);
+  const lyon = res.prospects.find((p) => p.SIREN === '900000007');
+  assert.equal(lyon.Ville, 'SARCELLES', "l'établissement local est utilisé, pas le siège lointain");
+  const [top] = res.prospects;
+  const second = res.prospects.find((p) => p.SIREN === '900000002');
   assert.equal(top.Entreprise, 'DOMAINE FICTIF DES TILLEULS');
   assert.equal(top['Email professionnel'], 'evenements@domaine-tilleuls.example.fr');
   assert.match(top['Source email'], /domaine-tilleuls/);
@@ -138,4 +142,30 @@ test('rapport quotidien', () => {
   assert.equal(r.kpis.nouveauxDuJour, 1);
   assert.equal(r.kpis.tauxReponse, 100);
   assert.match(r.html, /À traiter par vous \(1\)/);
+});
+
+const { calculerDevis } = require('../src/agents/devis');
+const { draftFollowUp } = require('../src/agents/prospection');
+
+test('agent devis : grille reprise de l\'outil existant, aucun prix inventé', () => {
+  const d = calculerDevis({ prestation: 'bar_mocktails', invites: 120, km: 20, options: { fumee: 1, mignardises_sucrees: 50 } });
+  assert.deepEqual(d.lignes.map((l) => l.montant), [540, 30, 50]); // 120 × 4,50 ; 20 km × 1,50 ; fumée 50
+  assert.equal(d.total, 620);
+  assert.equal(d.acompte, 186);
+  assert.equal(d.envoiAutomatiquePossible, false, 'grille non validée');
+  assert.ok(d.aValiderParDirigeant.some((m) => /Mignardises sucrées/.test(m)));
+  assert.equal(calculerDevis({ prestation: 'bar_mocktails', invites: 150, km: 1 }).lignes[0].prixUnitaire, 4);
+  assert.equal(calculerDevis({ prestation: 'bar_mocktails', invites: 99, km: 1 }).lignes[0].prixUnitaire, 5);
+  const fleurs = calculerDevis({ prestation: 'bar_fleurs', invites: 50, km: 5 });
+  assert.ok(fleurs.aValiderParDirigeant.some((m) => /bar_fleurs/.test(m)));
+});
+
+test('relances : 2 maximum, seulement après contact, avec désinscription', () => {
+  const row = { ID: 'P-1', Entreprise: 'X', SIREN: '1', 'Email professionnel': 'contact@x.fr', 'Source email': 'https://x.fr', Statut: 'contacte', Relances: '0', 'Prestation recommandée': 'Bar à mocktails' };
+  const r1 = draftFollowUp(row);
+  assert.equal(r1.ok, true);
+  assert.match(r1.corps, /STOP/);
+  assert.doesNotMatch(r1.objet, /^re/i);
+  assert.equal(draftFollowUp({ ...row, Relances: '2' }).ok, false);
+  assert.equal(draftFollowUp({ ...row, Statut: 'repondu' }).ok, false);
 });

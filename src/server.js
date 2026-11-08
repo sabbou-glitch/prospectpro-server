@@ -7,7 +7,8 @@ const config = require('./config');
 const log = require('./core/logger');
 const budget = require('./core/budget');
 const { runResearch, TARGETS } = require('./agents/research');
-const { draftEmail, analyzeReply } = require('./agents/prospection');
+const { draftEmail, draftFollowUp, analyzeReply } = require('./agents/prospection');
+const { calculerDevis } = require('./agents/devis');
 const { buildDailyReport } = require('./agents/report');
 const { searchCompanies } = require('./sources/insee');
 const { findPlace } = require('./sources/places');
@@ -77,6 +78,11 @@ function createApp() {
     return { brouillons: out };
   }));
 
+  agent.post('/followup', wrap(async (req) => {
+    const { prospects = [], exclusions = [], max = 15 } = req.body || {};
+    return { relances: prospects.slice(0, Math.min(max, 30)).map((row) => draftFollowUp(row, { exclusions })) };
+  }));
+  agent.post('/devis/calcul', wrap(async (req) => calculerDevis(req.body || {})));
   agent.post('/reply', wrap(async (req) => analyzeReply(req.body || {})));
   agent.post('/report', wrap(async (req) => buildDailyReport(req.body || {})));
 

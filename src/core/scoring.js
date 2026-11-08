@@ -2,15 +2,9 @@
 //  Correspondance prestations 30 · Potentiel événementiel 25 · Capacité commerciale 20
 //  Facilité de contact 15 · Proximité géographique 10
 const config = require('../config');
+const { haversineKm } = require('./geo');
 
 function clamp(v, min, max) { return Math.max(min, Math.min(max, Math.round(v))); }
-
-function haversineKm(a, b) {
-  const R = 6371, toRad = (x) => (x * Math.PI) / 180;
-  const dLat = toRad(b.lat - a.lat), dLon = toRad(b.lon - a.lon);
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
-}
 
 const DEPT_FALLBACK = { '95': 10, '75': 8, '92': 8, '78': 7, '93': 7, '94': 6, '60': 4, '77': 3, '91': 3, '27': 3 };
 

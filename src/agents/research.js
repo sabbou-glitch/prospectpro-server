@@ -10,7 +10,8 @@ const { findPlace } = require('../sources/places');
 const { analyzeWebsite } = require('../enrich/website');
 const { buildIndex, isDuplicate, addToIndex, normalizeName } = require('../core/dedupe');
 const { buildExclusionIndex, isExcluded } = require('../core/compliance');
-const { score, haversineKm } = require('../core/scoring');
+const { score } = require('../core/scoring');
+const { haversineKm } = require('../core/geo');
 const { callJson } = require('../llm/claude');
 const { BudgetExceededError } = require('../core/budget');
 
@@ -39,7 +40,7 @@ function loadState() { try { return JSON.parse(fs.readFileSync(stateFile(), 'utf
 function saveState(s) { fs.mkdirSync(config.dataDir, { recursive: true }); fs.writeFileSync(stateFile(), JSON.stringify(s, null, 2)); }
 
 function nameMatches(company, cat) {
-  const n = normalizeName(`${company.entreprise} ${company.nomComplet}`);
+  const n = normalizeName(`${company.entreprise} ${company.nomComplet} ${company.enseigne || ''}`);
   return cat.keywords.some((k) => n.includes(normalizeName(k)));
 }
 
@@ -111,7 +112,6 @@ function toRow(p, cat, s, ai) {
 async function runResearch(opts, deps = {}) {
   const cat = TARGETS.categories[opts.category];
   if (!cat) throw new Error(`Catégorie inconnue : ${opts.category}. Valeurs : ${Object.keys(TARGETS.categories).join(', ')}`);
-  const departements = opts.departements && opts.departements.length ? opts.departements : TARGETS.departements;
   const maxEnrich = Math.min(opts.maxEnrich || config.research.maxEnrichPerRun, config.research.maxEnrichPerRun);
   const fetchImpl = deps.fetchImpl || fetch;
   const stats = { trouves: 0, doublons: 0, exclus: 0, horsCible: 0, enrichis: 0, fermes: 0, retenus: 0, ecartes: 0, erreurs: 0, iaUtilisee: 0 };
@@ -123,8 +123,18 @@ async function runResearch(opts, deps = {}) {
   // 1. Registre officiel (la page suivante est mémorisée par catégorie pour avancer chaque jour)
   const state = loadState();
   const page = opts.page || state[opts.category] || 1;
-  const { results, totalPages } = await searchCompanies({ query: cat.query, naf: cat.naf, departements, page, fetchImpl });
+  const queries = cat.queries && cat.queries.length ? cat.queries : [cat.query];
+  const qKey = `${opts.category}:q`;
+  const qIndex = (opts.queryIndex ?? state[qKey] ?? 0) % queries.length;
+  const query = queries[qIndex];
+  // Zones : on épuise le Val-d'Oise avant de s'éloigner, puis on recommence.
+  const zones = TARGETS.zones || [TARGETS.departements];
+  const zKey = `${opts.category}:z`;
+  const zIndex = (state[zKey] ?? 0) % zones.length;
+  const departements = opts.departements && opts.departements.length ? opts.departements : zones[zIndex];
+  const { results, totalPages, opposes } = await searchCompanies({ query, naf: cat.naf, departements, page, origin: config.research.origin, fetchImpl });
   stats.trouves = results.length;
+  stats.oppositionRegistre = opposes || 0;
 
   // 2. Filtrage
   let candidates = [];
@@ -151,7 +161,7 @@ async function runResearch(opts, deps = {}) {
     try {
       if (!budgetStop) {
         try {
-          const place = await findPlace(p, { fetchImpl, apiKey: deps.placesKey });
+          const place = await findPlace({ entreprise: p.enseigne || p.entreprise, adresse: p.adresse, ville: p.ville }, { fetchImpl, apiKey: deps.placesKey });
           if (place) {
             Object.assign(p, place);
             if (place.googleMapsUri) p.sources.push({ type: 'google_places', url: place.googleMapsUri });
@@ -196,11 +206,17 @@ async function runResearch(opts, deps = {}) {
     }
   }
 
-  state[opts.category] = page < totalPages ? page + 1 : 1;
+  // Page suivante ; à la fin des pages, on passe au mot-clé suivant de la catégorie.
+  if (page < totalPages) state[opts.category] = page + 1;
+  else {
+    state[opts.category] = 1;
+    state[qKey] = (qIndex + 1) % queries.length;
+    if (state[qKey] === 0) state[zKey] = (zIndex + 1) % zones.length;
+  }
   saveState(state);
   prospects.sort((a, b) => b['Score commercial'] - a['Score commercial']);
   log.info('recherche', 'Exécution terminée', { categorie: opts.category, page, stats });
-  return { categorie: opts.category, page, totalPages, nextPage: page < totalPages ? page + 1 : null, stats, errors, budgetStop, prospects };
+  return { categorie: opts.category, requete: query, departements, page, totalPages, nextPage: page < totalPages ? page + 1 : null, stats, errors, budgetStop, prospects };
 }
 
 module.exports = { runResearch, TARGETS, QUALIF_SCHEMA };
